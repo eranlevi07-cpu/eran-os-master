@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ערן לוי - מפת החברה</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f2f5;
+      color: #1a1a2e;
+      padding: 30px 20px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 28px;
+      color: #1B2A4A;
+      margin-bottom: 6px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #888;
+      font-size: 14px;
+      margin-bottom: 40px;
+    }
+
+    /* ---- Legal entity ---- */
+    .legal {
+      background: #1B2A4A;
+      color: #fff;
+      text-align: center;
+      border-radius: 12px;
+      padding: 18px 30px;
+      max-width: 500px;
+      margin: 0 auto 10px;
+      font-size: 18px;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+    }
+    .legal small {
+      display: block;
+      font-size: 12px;
+      color: #aab4c8;
+      margin-top: 4px;
+      font-weight: normal;
+    }
+
+    /* connector */
+    .connector-center {
+      width: 2px;
+      height: 30px;
+      background: #1B2A4A;
+      margin: 0 auto;
+    }
+
+    /* ---- brands row ---- */
+    .brands-row {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 40px;
+    }
+
+    .brand-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 22px 20px;
+      width: 210px;
+      box-shadow: 0 3px 12px rgba(0,0,0,.08);
+      border-top: 5px solid #1B2A4A;
+      position: relative;
+    }
+    .brand-card.premium { border-top-color: #1B2A4A; }
+    .brand-card.classic { border-top-color: #F59E0B; }
+    .brand-card.bar     { border-top-color: #10B981; }
+    .brand-card.attractions { border-top-color: #6366F1; }
+    .brand-card.suspended { border-top-color: #9CA3AF; opacity: 0.7; }
+
+    .brand-icon { font-size: 28px; margin-bottom: 8px; }
+    .brand-name { font-size: 16px; font-weight: 700; color: #1B2A4A; margin-bottom: 4px; }
+    .brand-tag  { font-size: 11px; color: #888; margin-bottom: 12px; }
+    .brand-items { list-style: none; }
+    .brand-items li {
+      font-size: 12px;
+      color: #444;
+      padding: 3px 0;
+      border-bottom: 1px solid #f3f3f3;
+    }
+    .brand-items li:last-child { border-bottom: none; }
+
+    .status-badge {
+      display: inline-block;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      margin-top: 10px;
+      font-weight: 600;
+    }
+    .badge-active   { background: #D1FAE5; color: #065F46; }
+    .badge-build    { background: #DBEAFE; color: #1E40AF; }
+    .badge-pending  { background: #FEF3C7; color: #92400E; }
+    .badge-paused   { background: #F3F4F6; color: #6B7280; }
+
+    /* ---- section title ---- */
+    .section-title {
+      text-align: center;
+      font-size: 20px;
+      font-weight: 700;
+      color: #1B2A4A;
+      margin: 40px 0 20px;
+      position: relative;
+    }
+    .section-title::after {
+      content: '';
+      display: block;
+      width: 60px;
+      height: 3px;
+      background: #1B2A4A;
+      margin: 8px auto 0;
+      border-radius: 2px;
+    }
+
+    /* ---- Paulina ---- */
+    .paulina-card {
+      background: linear-gradient(135deg, #fdf6ff, #f3e8ff);
+      border: 2px solid #c084fc;
+      border-radius: 14px;
+      padding: 24px;
+      max-width: 700px;
+      margin: 0 auto 40px;
+      display: flex;
+      gap: 30px;
+      flex-wrap: wrap;
+    }
+    .paulina-card .col { flex: 1; min-width: 200px; }
+    .paulina-card h3 { color: #7C3AED; font-size: 18px; margin-bottom: 6px; }
+    .paulina-card .usp {
+      background: #7C3AED;
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      margin: 10px 0;
+      display: inline-block;
+    }
+    .paulina-card ul { list-style: none; }
+    .paulina-card ul li {
+      font-size: 13px;
+      padding: 3px 0;
+      color: #555;
+    }
+    .paulina-card ul li::before { content: '✓ '; color: #7C3AED; font-weight: bold; }
+
+    /* ---- infrastructure ---- */
+    .infra-grid {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 900px;
+      margin: 0 auto 40px;
+    }
+    .infra-item {
+      background: #fff;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 13px;
+      color: #1B2A4A;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+      font-weight: 500;
+    }
+
+    /* ---- KPIs ---- */
+    .kpi-grid {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 900px;
+      margin: 0 auto 40px;
+    }
+    .kpi-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 18px 20px;
+      min-width: 160px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.07);
+      text-align: center;
+    }
+    .kpi-card .kpi-label { font-size: 12px; color: #888; margin-bottom: 6px; }
+    .kpi-card .kpi-value { font-size: 26px; font-weight: 700; color: #1B2A4A; }
+    .kpi-card .kpi-sub   { font-size: 11px; color: #aaa; margin-top: 4px; }
+
+    /* ---- agents plan ---- */
+    .agents-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .agent-box {
+      background: #1B2A4A;
+      color: #fff;
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-size: 13px;
+      min-width: 140px;
+      text-align: center;
+    }
+    .agent-box .agent-name { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+    .agent-box .agent-desc { font-size: 11px; color: #aab4c8; }
+
+    /* ---- flow ---- */
+    .flow-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      max-width: 800px;
+      margin: 0 auto 40px;
+    }
+    .flow-step {
+      background: #fff;
+      border: 2px solid #1B2A4A;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #1B2A4A;
+      text-align: center;
+    }
+    .flow-arrow { font-size: 20px; color: #1B2A4A; }
+
+    footer {
+      text-align: center;
+      color: #aaa;
+      font-size: 12px;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>ערן לוי - מפת החברה</h1>
+  <p class="subtitle">עדכון: מרץ 2026 | מסמך חי - מתעדכן שוטף</p>
+
+  <!-- Legal -->
+  <div class="legal">
+    ערן לוי יזמות והפקות בתיירות בע"מ
+    <small>כל החשבוניות מחברה זו · כל המותגים תחתה</small>
+  </div>
+  <div class="connector-center"></div>
+
+  <!-- Brands -->
+  <div class="brands-row">
+
+    <div class="brand-card premium">
+      <div class="brand-icon">🏆</div>
+      <div class="brand-name">ERAN PRO</div>
+      <div class="brand-tag">HIGH-END PRODUCTION · פרסום ראשי</div>
+      <ul class="brand-items">
+        <li>נופשים פרימיום בארץ + חול</li>
+        <li>Incentive / ימי מנהלים</li>
+        <li>הפקות ערב חברה</li>
+        <li>XSTREAM BAR כ-add-on</li>
+      </ul>
+      <span class="status-badge badge-build">בבנייה</span>
+    </div>
+
+    <div class="brand-card classic">
+      <div class="brand-icon">🎉</div>
+      <div class="brand-name">יום כיף</div>
+      <div class="brand-tag">yomkef.co.il · מ-2004</div>
+      <ul class="brand-items">
+        <li>ימי כיף לארגונים</li>
+        <li>גיבוש קבוצות</li>
+        <li>טיולים ונופשים</li>
+        <li>כרטיסים לאטרקציות</li>
+      </ul>
+      <span class="status-badge badge-active">פעיל</span>
+    </div>
+
+    <div class="brand-card bar">
+      <div class="brand-icon">🚐</div>
+      <div class="brand-name">XSTREAM BAR</div>
+      <div class="brand-tag">בר נייד בלעדי</div>
+      <ul class="brand-items">
+        <li>בר נייד + קינוחים</li>
+        <li>משחקי גיבוש</li>
+        <li>תשלום לשותפות: 2,500 ₪ + מע"מ + עלויות הפעלה</li>
+        <li>מוצג ב-ERAN PRO</li>
+      </ul>
+      <span class="status-badge badge-pending">החלטה ממתינה</span>
+    </div>
+
+    <div class="brand-card attractions">
+      <div class="brand-icon">🎟️</div>
+      <div class="brand-name">אטרקציות</div>
+      <div class="brand-tag">ערוץ B2C · תחת יום כיף</div>
+      <ul class="brand-items">
+        <li>קייקים בצפון</li>
+        <li>טיולים מוטוריים בצפון</li>
+        <li>אטרקציה מתחלפת / עונה</li>
+        <li>WhatsApp שקט × 2 קבוצות</li>
+      </ul>
+      <span class="status-badge badge-build">בבנייה - אוטומציה</span>
+    </div>
+
+    <div class="brand-card" style="border-top-color:#7C3AED; width:210px;">
+      <div class="brand-icon">🧠</div>
+      <div class="brand-name" style="color:#7C3AED;">EVENT-IQ</div>
+      <div class="brand-tag">B2B SaaS · ניהול אירועים</div>
+      <ul class="brand-items">
+        <li>פורטל HR + מפיק + ספק + עובד</li>
+        <li>מפיקים: 300-990 ₪/חודש</li>
+        <li>ספקים: 100-300 ₪/חודש</li>
+        <li>HR: 700 ₪ + % עסקאות</li>
+      </ul>
+      <span class="status-badge" style="background:#EDE9FE;color:#5B21B6;">בפיתוח - Lovable</span>
+    </div>
+
+    <div class="brand-card suspended">
+      <div class="brand-icon">🔒</div>
+      <div class="brand-name">מבצר הבריחה</div>
+      <div class="brand-tag">חדר בריחה · עד 180 אנשים</div>
+      <ul class="brand-items">
+        <li>המצאה מקורית של ערן</li>
+        <li>מושבת בגלל המלחמה</li>
+        <li>תכנון חזרה + שילוב ביום כיף</li>
+      </ul>
+      <span class="status-badge badge-paused">מושבת</span>
+    </div>
+
+  </div>
+
+  <!-- Paulina -->
+  <div class="section-title">פולינה טרוסט לוי - עיצוב פנים</div>
+  <div class="paulina-card">
+    <div class="col">
+      <h3>👩‍🎨 פולינה טרוסט לוי</h3>
+      <div class="usp">"המעצבת שמגיעה בזמן ובתקציב"</div>
+      <ul>
+        <li>עצמאית מלאה · רמת ישי</li>
+        <li>ת"א + קריית שמונה</li>
+        <li>הכל: מגורים, מסחרי, משרדים</li>
+        <li>אתר: paulina.co.il</li>
+        <li>פרסום מתחיל: ספטמבר 2026</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h3>💡 יתרון תחרותי</h3>
+      <ul>
+        <li>לשעבר סמנכ"לית - מור אינסייד</li>
+        <li>ניהול 150 עובדים, 4 יח' רווח</li>
+        <li>אפס חריגות תקציב (30%+ = נורמה בתחום)</li>
+        <li>פרפקציוניסטית ומדויקת</li>
+        <li>מצוינות עסקית בתהליך העיצוב</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h3>🛠️ כלים שצריך לבנות</h3>
+      <ul>
+        <li>אינסטגרם פעיל + תוכן</li>
+        <li>שדרוג אתר + תיק עבודות</li>
+        <li>כתיבת פוסטים AI</li>
+        <li>יצירת תמונות / ויזואלים</li>
+        <li>דשבורד פרסומים</li>
+        <li>מחקר טרנדים ומתחרים</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Flow -->
+  <div class="section-title">מסע הלקוח</div>
+  <div class="flow-row">
+    <div class="flow-step">פרסום<br><small>ERAN PRO</small></div>
+    <div class="flow-arrow">←</div>
+    <div class="flow-step">פנייה<br><small>אתר / WhatsApp</small></div>
+    <div class="flow-arrow">←</div>
+    <div class="flow-step">הצעת מחיר<br><small>AI + ערן</small></div>
+    <div class="flow-arrow">←</div>
+    <div class="flow-step">סגירה<br><small>חשבונית</small></div>
+    <div class="flow-arrow">←</div>
+    <div class="flow-step">אירוע<br><small>+ XSTREAM BAR</small></div>
+    <div class="flow-arrow">←</div>
+    <div class="flow-step">Follow-up<br><small>Cross-sell</small></div>
+  </div>
+
+  <!-- Infrastructure -->
+  <div class="section-title">תשתית טכנולוגית</div>
+  <div class="infra-grid">
+    <div class="infra-item">⚙️ Make.com</div>
+    <div class="infra-item">📊 Airtable</div>
+    <div class="infra-item">📋 Google Sheets CRM</div>
+    <div class="infra-item">🔥 Firebase</div>
+    <div class="infra-item">▲ Vercel</div>
+    <div class="infra-item">🌐 Netlify</div>
+    <div class="infra-item">📱 Twilio</div>
+    <div class="infra-item">💬 WhatsApp Business</div>
+    <div class="infra-item">🤖 Anthropic API</div>
+    <div class="infra-item">📣 Publer</div>
+    <div class="infra-item">🔗 ManyChat</div>
+  </div>
+
+  <!-- KPI Dashboard -->
+  <div class="section-title">דשבורד - מה מודדים</div>
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">פניות / חודש<br>ERAN PRO</div>
+      <div class="kpi-value">___</div>
+      <div class="kpi-sub">מטרה: 20+</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">פניות / חודש<br>יום כיף</div>
+      <div class="kpi-value">___</div>
+      <div class="kpi-sub">מטרה: ___</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">אירועים<br>XSTREAM BAR</div>
+      <div class="kpi-value">___</div>
+      <div class="kpi-sub">פוטנציאל: 15/חודש</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">כרטיסים<br>אטרקציות</div>
+      <div class="kpi-value">___</div>
+      <div class="kpi-sub">מטרה: אוטומטי 100%</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">לידים<br>פולינה</div>
+      <div class="kpi-value">___</div>
+      <div class="kpi-sub">מתחיל ספטמבר</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">הכנסה כוללת<br>חודשית</div>
+      <div class="kpi-value">₪___</div>
+      <div class="kpi-sub">כל המותגים</div>
+    </div>
+  </div>
+
+  <!-- Agents -->
+  <div class="section-title">ארכיטקטורת הסוכנים</div>
+  <div class="agents-row">
+    <div class="agent-box">
+      <div class="agent-name">🧠 master</div>
+      <div class="agent-desc">סוכן ראשי<br>ניתוב + אסטרטגיה</div>
+    </div>
+    <div class="agent-box">
+      <div class="agent-name">🏆 eran-pro</div>
+      <div class="agent-desc">שיווק פרימיום<br>לידים + תוכן</div>
+    </div>
+    <div class="agent-box">
+      <div class="agent-name">🎉 yomkef</div>
+      <div class="agent-desc">הצעות מחיר<br>לקוחות + ספקים</div>
+    </div>
+    <div class="agent-box">
+      <div class="agent-name">🚐 xstream</div>
+      <div class="agent-desc">תפעול<br>שיווק הבר</div>
+    </div>
+    <div class="agent-box">
+      <div class="agent-name">🎟️ attractions</div>
+      <div class="agent-desc">מכירה אוטומטית<br>WhatsApp</div>
+    </div>
+    <div class="agent-box">
+      <div class="agent-name">👩‍🎨 paulina</div>
+      <div class="agent-desc">שיווק עיצוב פנים<br>תוכן + לידים</div>
+    </div>
+    <div class="agent-box">
+      <div class="agent-name">💬 community</div>
+      <div class="agent-desc">קהילה<br>WhatsApp לידים</div>
+    </div>
+    <div class="agent-box" style="background:#5B21B6;">
+      <div class="agent-name">🧠 event-iq</div>
+      <div class="agent-desc">SaaS · PRD<br>פיתוח + אסטרטגיה</div>
+    </div>
+  </div>
+
+  <footer>
+    ערן לוי יזמות והפקות בתיירות בע"מ · מרץ 2026
+  </footer>
+
+</body>
+</html>

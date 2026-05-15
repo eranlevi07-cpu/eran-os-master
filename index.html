@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ערן לוי OS - מרכז בקרה</title>
+<style>
+/* ===== THEMES ===== */
+:root,[data-theme="dark"] {
+  --bg: #0f1117; --surface: #1a1d27; --surface2: #222536; --surface3: #2a2e42;
+  --border: #2e3349; --border2: #3d4460;
+  --text: #e2e8f0; --text-muted: #64748b; --text-dim: #94a3b8;
+  --accent: #f59e0b; --accent-dim: rgba(245,158,11,0.12);
+  --blue: #3b82f6; --purple: #8b5cf6; --green: #10b981; --red: #ef4444;
+  --shadow: rgba(0,0,0,0.4);
+}
+[data-theme="dim"] {
+  --bg: #1e2130; --surface: #262b3e; --surface2: #2e3450; --surface3: #363d5e;
+  --border: #3a4160; --border2: #4a5280;
+  --text: #dde4f0; --text-muted: #6b7fa0; --text-dim: #8fa3c0;
+  --accent: #f59e0b; --accent-dim: rgba(245,158,11,0.12);
+  --blue: #4a90f0; --purple: #9b6cf6; --green: #10c98b; --red: #f05050;
+  --shadow: rgba(0,0,0,0.3);
+}
+[data-theme="warm"] {
+  --bg: #1a1510; --surface: #24201a; --surface2: #2e2920; --surface3: #38322a;
+  --border: #3d3628; --border2: #504535;
+  --text: #f0e8d8; --text-muted: #7a6e5a; --text-dim: #a09070;
+  --accent: #e8a030; --accent-dim: rgba(232,160,48,0.12);
+  --blue: #6090e0; --purple: #9060c0; --green: #40b880; --red: #d05040;
+  --shadow: rgba(0,0,0,0.4);
+}
+[data-theme="light"] {
+  --bg: #f0f4f8; --surface: #ffffff; --surface2: #f8fafc; --surface3: #eef2f7;
+  --border: #d1dce8; --border2: #b8c8d8;
+  --text: #0f172a; --text-muted: #64748b; --text-dim: #475569;
+  --accent: #d97706; --accent-dim: rgba(217,119,6,0.1);
+  --blue: #2563eb; --purple: #7c3aed; --green: #059669; --red: #dc2626;
+  --shadow: rgba(0,0,0,0.1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; min-height: 100vh; transition: background 0.3s, color 0.3s; }
+
+/* ===== HEADER ===== */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 12px var(--shadow);
+}
+.header-brand { display: flex; align-items: center; gap: 12px; }
+.header-logo {
+  width: 38px; height: 38px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), var(--blue));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 800; color: #fff;
+  flex-shrink: 0;
+}
+.header-title h1 { font-size: 19px; font-weight: 800; letter-spacing: -0.4px; }
+.header-title .sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+.header-right { display: flex; align-items: center; gap: 14px; }
+.date-display { font-size: 12px; color: var(--text-muted); }
+
+/* THEME SWITCHER */
+.theme-switcher { display: flex; align-items: center; gap: 6px; }
+.theme-label { font-size: 11px; color: var(--text-muted); margin-left: 4px; }
+.theme-dot {
+  width: 18px; height: 18px; border-radius: 50%; cursor: pointer;
+  border: 2px solid transparent; transition: border-color 0.2s, transform 0.15s;
+}
+.theme-dot:hover { transform: scale(1.2); }
+.theme-dot.active { border-color: var(--text); }
+.td-dark { background: #0f1117; }
+.td-dim { background: #1e2130; }
+.td-warm { background: #2a1f14; }
+.td-light { background: linear-gradient(135deg, #f0f4f8, #dde8f0); border: 2px solid #b8c8d8 !important; }
+
+/* ===== MAIN ===== */
+.main { max-width: 1160px; margin: 0 auto; padding: 24px; display: flex; flex-direction: column; gap: 28px; }
+
+/* ===== SYSTEM OVERVIEW BANNER ===== */
+.overview-banner {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px 28px;
+}
+.overview-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; margin-bottom: 20px; }
+.overview-text h2 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+.overview-text p { font-size: 13px; color: var(--text-dim); line-height: 1.7; max-width: 560px; }
+.overview-mission {
+  background: var(--accent-dim);
+  border: 1px solid rgba(245,158,11,0.2);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 12px;
+  line-height: 1.7;
+  flex-shrink: 0;
+  min-width: 220px;
+}
+.overview-mission .mission-title { font-size: 10px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+
+/* SYSTEM TREE */
+.system-tree {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow-x: auto;
+  padding: 4px 0;
+}
+.tree-node {
+  flex-shrink: 0;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 12px;
+  text-align: center;
+  min-width: 110px;
+}
+.tree-node .tn-icon { font-size: 18px; margin-bottom: 4px; }
+.tree-node .tn-name { font-weight: 600; font-size: 11px; line-height: 1.3; }
+.tree-node .tn-role { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+.tree-arrow {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  font-size: 18px;
+  padding: 0 6px;
+}
+.tn-blue { border-color: rgba(59,130,246,0.35); }
+.tn-purple { border-color: rgba(139,92,246,0.35); }
+.tn-green { border-color: rgba(16,185,129,0.35); }
+.tn-orange { border-color: rgba(245,158,11,0.35); }
+.tn-red { border-color: rgba(239,68,68,0.35); }
+
+/* ===== LIVE STATS ===== */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  text-align: center;
+}
+.stat-card .sc-val { font-size: 26px; font-weight: 800; line-height: 1; }
+.stat-card .sc-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; margin-top: 4px; }
+.stat-card .sc-sub { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+.stat-card.s-green .sc-val { color: var(--green); }
+.stat-card.s-blue .sc-val { color: var(--blue); }
+.stat-card.s-purple .sc-val { color: var(--purple); }
+.stat-card.s-orange .sc-val { color: var(--accent); }
+.stat-card.s-red .sc-val { color: var(--red); }
+
+/* ===== SECTION TITLE ===== */
+.section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.section-title { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; }
+.section-divider { flex: 1; height: 1px; background: var(--border); }
+
+/* ===== HUB CARDS ===== */
+.hubs-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+.hub-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px;
+  text-decoration: none;
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.hub-card:hover {
+  border-color: var(--card-accent);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px var(--shadow);
+}
+.hub-card.outreach { --card-accent: var(--blue); }
+.hub-card.inbound { --card-accent: var(--accent); }
+.hub-card.widget { --card-accent: var(--green); }
+
+.hub-card-top { display: flex; align-items: flex-start; gap: 14px; }
+.hub-icon {
+  width: 46px; height: 46px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; flex-shrink: 0;
+}
+.hub-card.outreach .hub-icon { background: rgba(59,130,246,0.15); }
+.hub-card.inbound .hub-icon { background: rgba(245,158,11,0.15); }
+.hub-card.widget .hub-icon { background: rgba(16,185,129,0.15); }
+.hub-card-title { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+.hub-card-file { font-size: 11px; color: var(--text-muted); }
+
+.hub-what { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+.hub-desc { font-size: 12px; color: var(--text-dim); line-height: 1.7; }
+
+.hub-roles {
+  background: var(--surface2);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.hub-roles strong { color: var(--text); }
+
+.hub-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.tag {
+  font-size: 11px; padding: 3px 9px; border-radius: 20px;
+  border: 1px solid var(--border); color: var(--text-muted); background: var(--surface2);
+}
+.tag.blue { border-color: rgba(59,130,246,0.4); color: var(--blue); background: rgba(59,130,246,0.08); }
+.tag.purple { border-color: rgba(139,92,246,0.4); color: var(--purple); background: rgba(139,92,246,0.08); }
+.tag.green { border-color: rgba(16,185,129,0.4); color: var(--green); background: rgba(16,185,129,0.08); }
+.tag.orange { border-color: rgba(245,158,11,0.4); color: var(--accent); background: rgba(245,158,11,0.08); }
+
+.hub-cta {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 600; padding: 9px 18px;
+  border-radius: 8px; border: none; cursor: pointer;
+  text-decoration: none; width: fit-content;
+  transition: opacity 0.2s;
+}
+.hub-cta:hover { opacity: 0.85; }
+.hub-card.outreach .hub-cta { background: rgba(59,130,246,0.15); color: var(--blue); }
+.hub-card.inbound .hub-cta { background: rgba(245,158,11,0.15); color: var(--accent); }
+.hub-card.widget .hub-cta { background: rgba(16,185,129,0.15); color: var(--green); }
+
+/* ===== AGENT CARDS ===== */
+.agents-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+
+.agent-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  display: flex; flex-direction: column; gap: 10px;
+  text-decoration: none; color: var(--text);
+  transition: border-color 0.2s, transform 0.15s;
+}
+.agent-card:hover { transform: translateY(-1px); border-color: var(--agent-color); }
+.agent-card.a-hr { --agent-color: var(--green); }
+.agent-card.a-prod { --agent-color: var(--purple); }
+.agent-card.a-sup { --agent-color: var(--blue); }
+
+.agent-top { display: flex; align-items: center; gap: 10px; }
+.agent-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.a-hr .agent-dot { background: var(--green); }
+.a-prod .agent-dot { background: var(--purple); }
+.a-sup .agent-dot { background: var(--blue); }
+.agent-name { font-size: 14px; font-weight: 700; }
+.agent-target { font-size: 11px; color: var(--text-muted); }
+
+.agent-what { font-size: 12px; font-weight: 600; margin-bottom: 2px; }
+.agent-desc { font-size: 12px; color: var(--text-dim); line-height: 1.6; }
+
+.agent-steps {
+  display: flex; flex-direction: column; gap: 4px;
+  font-size: 11px; color: var(--text-dim);
+}
+.agent-step { display: flex; align-items: flex-start; gap: 6px; }
+.agent-step::before { content: '→'; color: var(--agent-color); flex-shrink: 0; }
+
+.agent-kpis { display: flex; gap: 10px; }
+.kpi { font-size: 11px; }
+.kpi strong { color: var(--text); }
+
+.agent-open {
+  font-size: 11px; color: var(--text-muted);
+  padding: 5px 10px; border-radius: 6px;
+  background: var(--surface2); border: 1px solid var(--border);
+  cursor: pointer; text-decoration: none; width: fit-content;
+  transition: color 0.2s, border-color 0.2s;
+}
+.agent-open:hover { color: var(--text); border-color: var(--border2); }
+
+/* ===== WORKFLOW ===== */
+.workflow-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px 24px;
+}
+.workflow-title { font-size: 15px; font-weight: 700; margin-bottom: 20px; }
+.workflow-cols { display: grid; grid-template-columns: 1fr 1px 1fr; gap: 24px; }
+.workflow-divider { background: var(--border); }
+.wf-col-title { font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
+.wf-steps { display: flex; flex-direction: column; gap: 8px; }
+.wf-step {
+  display: flex; align-items: flex-start; gap: 10px;
+  background: var(--surface2); border-radius: 8px; padding: 10px 12px;
+}
+.wf-num {
+  width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 1px;
+}
+.wf-col-outreach .wf-num { background: rgba(59,130,246,0.2); color: var(--blue); }
+.wf-col-inbound .wf-num { background: rgba(245,158,11,0.2); color: var(--accent); }
+.wf-step-text { font-size: 12px; line-height: 1.5; }
+.wf-step-text strong { font-size: 12px; display: block; margin-bottom: 1px; }
+.wf-step-text span { color: var(--text-muted); font-size: 11px; }
+
+/* ===== CONTACT WIDGET SECTION ===== */
+.widget-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px 24px;
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+.widget-info { flex: 1; }
+.widget-info h3 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+.widget-info p { font-size: 12px; color: var(--text-dim); line-height: 1.7; }
+.widget-code-block {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-family: monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+  direction: ltr;
+  text-align: left;
+  flex-shrink: 0;
+  min-width: 340px;
+  word-break: break-all;
+}
+.widget-code-block .code-label { font-size: 10px; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.4px; direction: rtl; text-align: right; }
+.copy-btn {
+  font-size: 11px; padding: 4px 10px; border-radius: 5px;
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text-muted); cursor: pointer; margin-top: 8px;
+  transition: color 0.2s;
+}
+.copy-btn:hover { color: var(--text); }
+.open-widget-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 600; padding: 8px 16px;
+  border-radius: 8px; background: rgba(16,185,129,0.12);
+  color: var(--green); border: 1px solid rgba(16,185,129,0.25);
+  text-decoration: none; cursor: pointer; margin-top: 10px;
+  transition: opacity 0.2s;
+}
+.open-widget-btn:hover { opacity: 0.85; }
+
+/* ===== FOOTER ===== */
+.footer {
+  max-width: 1160px; margin: 0 auto;
+  padding: 0 24px 28px;
+  display: flex; gap: 20px; flex-wrap: wrap;
+  font-size: 11px; color: var(--text-muted);
+}
+.footer a { color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+.footer a:hover { color: var(--text); }
+.footer-sep { color: var(--border); }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-brand">
+    <div class="header-logo">ע</div>
+    <div class="header-title">
+      <h1>ערן לוי OS</h1>
+      <div class="sub">מרכז בקרה - מערכת הפניות, הלידים, והסוכנים</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="theme-switcher">
+      <span class="theme-label">ערכת צבעים</span>
+      <div class="theme-dot td-dark active" title="כהה" onclick="setTheme('dark')"></div>
+      <div class="theme-dot td-dim" title="מעומעם" onclick="setTheme('dim')"></div>
+      <div class="theme-dot td-warm" title="חם" onclick="setTheme('warm')"></div>
+      <div class="theme-dot td-light" title="בהיר" onclick="setTheme('light')"></div>
+    </div>
+    <div class="date-display" id="dateDisplay"></div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- OVERVIEW BANNER -->
+  <div class="overview-banner">
+    <div class="overview-top">
+      <div class="overview-text">
+        <h2>מה המערכת הזו עושה?</h2>
+        <p>
+          ערן לוי OS היא מערכת עבודה שמנהלת את כל תהליך הפנייה ללקוחות - מהצד היוצא (פניות יזומות ע"י סוכני AI) ומהצד הנכנס (לידים שמגיעים מיוזמה).
+          שני הצדדים מתחברים לצינור עסקי אחד שמייצר לידים, מנהל אותם, ומוביל לעסקאות.
+        </p>
+      </div>
+      <div class="overview-mission">
+        <div class="mission-title">יעד יומי</div>
+        <div>📤 <strong>20</strong> פניות יזומות HR</div>
+        <div>🤝 <strong>15</strong> פניות למפיקים</div>
+        <div>🏪 <strong>150</strong> פניות לספקים</div>
+        <div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);font-size:11px;color:var(--text-muted);">
+          סה"כ 185 פניות / יום
+        </div>
+      </div>
+    </div>
+
+    <!-- SYSTEM TREE -->
+    <div class="system-tree">
+      <div class="tree-node tn-purple">
+        <div class="tn-icon">🤖</div>
+        <div class="tn-name">סוכן AI</div>
+        <div class="tn-role">מחקר חברות</div>
+      </div>
+      <div class="tree-arrow">←</div>
+      <div class="tree-node tn-blue">
+        <div class="tn-icon">📤</div>
+        <div class="tn-name">מוקד יזום</div>
+        <div class="tn-role">סקירה + אישור</div>
+      </div>
+      <div class="tree-arrow">←</div>
+      <div class="tree-node tn-orange">
+        <div class="tn-icon">💬</div>
+        <div class="tn-name">WhatsApp</div>
+        <div class="tn-role">שליחת פנייה</div>
+      </div>
+      <div class="tree-arrow">←</div>
+      <div class="tree-node tn-green">
+        <div class="tn-icon">🎯</div>
+        <div class="tn-name">לקוח פוטנציאלי</div>
+        <div class="tn-role">מגיב → ליד</div>
+      </div>
+      <div style="width:1px;background:var(--border);height:60px;margin:0 12px;align-self:center;flex-shrink:0;"></div>
+      <div class="tree-node tn-orange">
+        <div class="tn-icon">📱</div>
+        <div class="tn-name">טופס קשר</div>
+        <div class="tn-role">אתרים + WhatsApp</div>
+      </div>
+      <div class="tree-arrow">←</div>
+      <div class="tree-node tn-orange">
+        <div class="tn-icon">📥</div>
+        <div class="tn-name">מוקד נכנסים</div>
+        <div class="tn-role">Pipeline + ניתוח AI</div>
+      </div>
+      <div class="tree-arrow">←</div>
+      <div class="tree-node tn-green">
+        <div class="tn-icon">💰</div>
+        <div class="tn-name">עסקה</div>
+        <div class="tn-role">הצעה → סגירה</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIVE STATS -->
+  <div>
+    <div class="section-header">
+      <span class="section-title">נתונים חיים מהמערכת</span>
+      <div class="section-divider"></div>
+      <span style="font-size:11px;color:var(--text-muted);" id="statsUpdated"></span>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card s-orange">
+        <div class="sc-val" id="st-inbound-total">0</div>
+        <div class="sc-label">סה"כ לידים נכנסים</div>
+        <div class="sc-sub">מוקד הנכנסים</div>
+      </div>
+      <div class="stat-card s-green">
+        <div class="sc-val" id="st-inbound-new">0</div>
+        <div class="sc-label">לידים חדשים</div>
+        <div class="sc-sub">ממתינים לטיפול</div>
+      </div>
+      <div class="stat-card s-blue">
+        <div class="sc-val" id="st-inbound-progress">0</div>
+        <div class="sc-label">בטיפול פעיל</div>
+        <div class="sc-sub">פניות יזומות</div>
+      </div>
+      <div class="stat-card s-purple">
+        <div class="sc-val" id="st-outbound-total">0</div>
+        <div class="sc-label">פניות יזומות</div>
+        <div class="sc-sub">מוקד יוצא</div>
+      </div>
+      <div class="stat-card s-green">
+        <div class="sc-val" id="st-won">0</div>
+        <div class="sc-label">נסגרו - כן</div>
+        <div class="sc-sub">עסקאות שנסגרו</div>
+      </div>
+      <div class="stat-card s-orange">
+        <div class="sc-val" id="st-outbound-pending">0</div>
+        <div class="sc-label">ממתין לאישור</div>
+        <div class="sc-sub">טרם נשלח</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HUBS -->
+  <div>
+    <div class="section-header">
+      <span class="section-title">מוקדי עבודה</span>
+      <div class="section-divider"></div>
+    </div>
+    <div class="hubs-row">
+
+      <a href="outreach-hub.html" class="hub-card outreach">
+        <div class="hub-card-top">
+          <div class="hub-icon">📤</div>
+          <div>
+            <div class="hub-card-title">מוקד הפניות היזומות</div>
+            <div class="hub-card-file">outreach-hub.html</div>
+          </div>
+        </div>
+        <div>
+          <div class="hub-what">מה זה עושה?</div>
+          <div class="hub-desc">
+            קולט JSON מסוכני AI, מציג כל פנייה לסקירה ועריכה לפני שליחה. עוקב אחרי סטטוס כל פנייה לאורך כל מחזור החיים שלה.
+          </div>
+        </div>
+        <div class="hub-roles">
+          <strong>תפקידו במערכת:</strong> החוליה שבין הסוכן שיצר את הפנייה לבין הלקוח שיקבל אותה. בלי המוקד הזה, הסוכן שולח אוטומטית - מה שמסוכן. המוקד נותן לך שליטה על כל הודעה.
+        </div>
+        <div class="hub-tags">
+          <span class="tag green">לקוחות HR</span>
+          <span class="tag purple">מפיקים</span>
+          <span class="tag blue">ספקים</span>
+        </div>
+        <span class="hub-cta">פתח מוקד ←</span>
+      </a>
+
+      <a href="inbound-hub.html" class="hub-card inbound">
+        <div class="hub-card-top">
+          <div class="hub-icon">📥</div>
+          <div>
+            <div class="hub-card-title">מוקד הנכנסים</div>
+            <div class="hub-card-file">inbound-hub.html</div>
+          </div>
+        </div>
+        <div>
+          <div class="hub-what">מה זה עושה?</div>
+          <div class="hub-desc">
+            מנהל לידים שהגיעו מיוזמה - WhatsApp, אתר, המלצה, מענה לפנייה יוצאת. תומך בניתוח שיחות ע"י AI שממלא את כל הפרטים אוטומטית.
+          </div>
+        </div>
+        <div class="hub-roles">
+          <strong>תפקידו במערכת:</strong> ה-CRM המינימלי שמחליף גיליון אקסל. כל ליד נכנס מקבל מיד התייחסות AI - מה ביקש, מה להציע, עד כמה חם. אתה רק מחליט מה לעשות.
+        </div>
+        <div class="hub-tags">
+          <span class="tag orange">יום כיף</span>
+          <span class="tag orange">XSTREAM BAR</span>
+          <span class="tag orange">מבצר הבריחה</span>
+        </div>
+        <span class="hub-cta">פתח מוקד ←</span>
+      </a>
+
+      <a href="contact-widget.html" target="_blank" class="hub-card widget">
+        <div class="hub-card-top">
+          <div class="hub-icon">📋</div>
+          <div>
+            <div class="hub-card-title">טופס לידים</div>
+            <div class="hub-card-file">contact-widget.html</div>
+          </div>
+        </div>
+        <div>
+          <div class="hub-what">מה זה עושה?</div>
+          <div class="hub-desc">
+            טופס פנייה לקבלת הצעה - עם הקלטה קולית, שדות מילוי, וחיבור אוטומטי ל-Google Sheets דרך Make.com.
+          </div>
+        </div>
+        <div class="hub-roles">
+          <strong>תפקידו במערכת:</strong> נקודת הכניסה של לידים נכנסים. מי שממלא את הטופס נכנס ישירות לגיליון ומשם למוקד הנכנסים.
+        </div>
+        <div class="hub-tags">
+          <span class="tag green">יום כיף</span>
+          <span class="tag orange">XSTREAM BAR</span>
+          <span class="tag orange">מבצר הבריחה</span>
+        </div>
+        <span class="hub-cta">פתח טופס ←</span>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- AGENTS -->
+  <div>
+    <div class="section-header">
+      <span class="section-title">סוכני AI - פרומפטים מוכנים</span>
+      <div class="section-divider"></div>
+    </div>
+    <div class="agents-row">
+
+      <a href="agent-hr-prompt.md" class="agent-card a-hr">
+        <div class="agent-top">
+          <div class="agent-dot"></div>
+          <div>
+            <div class="agent-name">סוכן לקוחות HR</div>
+            <div class="agent-target">יום כיף - פנייה לחברות עם טריגר</div>
+          </div>
+        </div>
+        <div>
+          <div class="agent-what">מה הסוכן עושה?</div>
+          <div class="agent-desc">מאתר חברות ישראליות שעברו אירוע (גיוס, סגירת הון, שנת יובל), מזהה את מנהלת הרווחה, וכותב פנייה מותאמת לטריגר הספציפי.</div>
+        </div>
+        <div class="agent-steps">
+          <div class="agent-step">מחקר חברות בלינקדאין, כלכליסט, גלובס</div>
+          <div class="agent-step">זיהוי מנהלת רווחה/HR לפי תפקיד</div>
+          <div class="agent-step">כתיבת הודעה אישית 4 משפטים</div>
+          <div class="agent-step">פלט JSON מוכן לייבוא למוקד</div>
+        </div>
+        <div class="agent-kpis">
+          <div class="kpi">יעד: <strong>20/יום</strong></div>
+          <div class="kpi">מענה: <strong>10-20%</strong></div>
+          <div class="kpi">עסקאות: <strong>2-4/חודש</strong></div>
+        </div>
+        <span class="agent-open">📄 agent-hr-prompt.md</span>
+      </a>
+
+      <a href="agent-producers-prompt.md" class="agent-card a-prod">
+        <div class="agent-top">
+          <div class="agent-dot"></div>
+          <div>
+            <div class="agent-name">סוכן מפיקים</div>
+            <div class="agent-target">YOMKEF OS - גיוס משתמשי בטא</div>
+          </div>
+        </div>
+        <div>
+          <div class="agent-what">מה הסוכן עושה?</div>
+          <div class="agent-desc">מאתר מפיקי B2B ישראליים ומזמין אותם לתכנית בטא סגורה של YOMKEF OS. גישת קולגה-לקולגה - ערן כמפיק פונה למפיקים.</div>
+        </div>
+        <div class="agent-steps">
+          <div class="agent-step">חיפוש מפיקים בלינקדאין + גוגל</div>
+          <div class="agent-step">סינון לפי B2B ונוכחות דיגיטלית</div>
+          <div class="agent-step">פנייה אישית "קולגה לקולגה"</div>
+          <div class="agent-step">הזמנה לבטא סגורה</div>
+        </div>
+        <div class="agent-kpis">
+          <div class="kpi">יעד: <strong>15/יום</strong></div>
+          <div class="kpi">מענה: <strong>15-25%</strong></div>
+          <div class="kpi">בטא: <strong>2-4/חודש</strong></div>
+        </div>
+        <span class="agent-open">📄 agent-producers-prompt.md</span>
+      </a>
+
+      <a href="agent-suppliers-prompt.md" class="agent-card a-sup">
+        <div class="agent-top">
+          <div class="agent-dot"></div>
+          <div>
+            <div class="agent-name">סוכן ספקים</div>
+            <div class="agent-target">YOMKEF OS - גיוס ספקים לפלטפורמה</div>
+          </div>
+        </div>
+        <div>
+          <div class="agent-what">מה הסוכן עושה?</div>
+          <div class="agent-desc">מאתר ספקי אירועים (קייטרינג, אטרקציות, תחבורה, ציוד, מקומות) ומציע להם להירשם כספק ב-YOMKEF OS. רישום בחינם בשלב ההשקה.</div>
+        </div>
+        <div class="agent-steps">
+          <div class="agent-step">מחקר ספקים לפי קטגוריה + עיר</div>
+          <div class="agent-step">אימות פעילות (אתר, ביקורות)</div>
+          <div class="agent-step">פנייה ממוקדת "חשיפה למפיקים"</div>
+          <div class="agent-step">30 ספקים לבקשה × 5 = 150/יום</div>
+        </div>
+        <div class="agent-kpis">
+          <div class="kpi">יעד: <strong>150/יום</strong></div>
+          <div class="kpi">מענה: <strong>8-15%</strong></div>
+          <div class="kpi">רישום: <strong>5-10/יום</strong></div>
+        </div>
+        <span class="agent-open">📄 agent-suppliers-prompt.md</span>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- WORKFLOW -->
+  <div class="workflow-box">
+    <div class="workflow-title">תהליך עבודה יומי - שני הנתיבים</div>
+    <div class="workflow-cols">
+      <div class="wf-col-outreach">
+        <div class="wf-col-title">📤 נתיב יוצא - פניות יזומות</div>
+        <div class="wf-steps">
+          <div class="wf-step">
+            <div class="wf-num">1</div>
+            <div class="wf-step-text"><strong>הרץ סוכן AI</strong><span>העתק System + User Prompt ל-Claude</span></div>
+          </div>
+          <div class="wf-step">
+            <div class="wf-num">2</div>
+            <div class="wf-step-text"><strong>קבל JSON</strong><span>הסוכן מחזיר רשימת חברות + הודעות</span></div>
+          </div>
+          <div class="wf-step">
+            <div class="wf-num">3</div>
+            <div class="wf-step-text"><strong>טען למוקד יוצא</strong><span>"טען נתונים" → בחר טאב → הדבק JSON</span></div>
+          </div>
+          <div class="wf-step">
+            <div class="wf-num">4</div>
+            <div class="wf-step-text"><strong>סקור ואשר</strong><span>קרא כל הודעה, ערוך אם צריך</span></div>
+          </div>
+          <div class="wf-step">
+            <div class="wf-num">5</div>
+            <div class="wf-step-text"><strong>שלח ועקוב</strong><span>WhatsApp/Email → עדכן סטטוס → עקוב מענות</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="workflow-divider"></div>
+      <div class="wf-col-inbound">
+        <div class="wf-col-title">📥 נתיב נכנס - ניהול לידים</div>
+        <div class="wf-steps">
+          <div class="wf-step">
+            <div class="wf-num">1</div>
+            <div class="wf-step-text"><strong>ליד מגיע</strong><span>WhatsApp / אתר / טופס קשר / המלצה</span></div>
+          </div>
+          <div class="wf-step">
+            <div class="wf-num">2</div>
+            <div class="wf-step-text"><strong>ניתוח שיחה</strong><span>🎙 הקלט / העלה / הדבק תמליל → AI ממלא פרטים</span></div>
+          </div>
+          <div class="wf-step">
+            <div class="wf-num">3</div>
+            <div class="wf-step-text"><strong>קרא המלצת AI</strong><span>מה להציע, מה חסר לשאול, חם/קר</span></div>
+          </div>
+          <div class="wf-step">
+            <div class="wf-num">4</div>
+            <div class="wf-step-text"><strong>עקוב ב-Pipeline</strong><span>חדש → בטיפול → הצעה נשלחה → נסגר</span></div>
+          </div>
+          <div class="wf-step">
+            <div class="wf-num">5</div>
+            <div class="wf-step-text"><strong>סגור עסקה</strong><span>שלח הצעה דיגיטלית → אשר → הפקה</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTACT WIDGET -->
+  <div>
+    <div class="section-header">
+      <span class="section-title">טופס קשר עם קול - להטמעה באתרים</span>
+      <div class="section-divider"></div>
+    </div>
+    <div class="widget-box">
+      <div class="widget-info">
+        <h3>🎙 טופס קשר מדבר</h3>
+        <p>
+          ווידג'ט שניתן להטמיע בכל אתר - yomkef.co.il, XSTREAM BAR, כל דף נחיתה.
+          הלקוח לוחץ על מיקרופון ומדבר מה הוא מחפש, או מקליד.
+          הפנייה נכנסת ישירות למוקד הנכנסים.
+        </p>
+        <p style="margin-top:8px;">
+          <strong>הטמעה:</strong> iframe פשוט. אפשר להתאים צבעים, כותרת, ופרויקט (yomkef / xstream / mivtzar).
+        </p>
+        <a href="contact-widget.html" target="_blank" class="open-widget-btn">🔗 פתח טופס קשר</a>
+      </div>
+      <div class="widget-code-block">
+        <div class="code-label">קוד הטמעה לאתר</div>
+        &lt;iframe<br>
+        &nbsp;&nbsp;src="contact-widget.html?project=yomkef"<br>
+        &nbsp;&nbsp;width="100%"<br>
+        &nbsp;&nbsp;height="420"<br>
+        &nbsp;&nbsp;frameborder="0"<br>
+        &nbsp;&nbsp;style="border-radius:16px"<br>
+        &gt;&lt;/iframe&gt;
+        <br>
+        <button class="copy-btn" onclick="copyEmbedCode()">📋 העתק קוד</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <a href="outreach-hub.html">מוקד פניות יזומות</a>
+  <span class="footer-sep">·</span>
+  <a href="inbound-hub.html">מוקד נכנסים</a>
+  <span class="footer-sep">·</span>
+  <a href="agent-hr-prompt.md">סוכן HR</a>
+  <span class="footer-sep">·</span>
+  <a href="agent-producers-prompt.md">סוכן מפיקים</a>
+  <span class="footer-sep">·</span>
+  <a href="agent-suppliers-prompt.md">סוכן ספקים</a>
+  <span class="footer-sep">·</span>
+  <a href="contact-widget.html" target="_blank">טופס קשר</a>
+  <span class="footer-sep" style="margin-right:auto;"></span>
+  <span>ערן לוי OS · yomkef.co.il</span>
+</div>
+
+<script>
+// ===== DATE =====
+(function() {
+  const d = new Date();
+  const days = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+  const months = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+  document.getElementById('dateDisplay').textContent =
+    `יום ${days[d.getDay()]}, ${d.getDate()} ב${months[d.getMonth()]} ${d.getFullYear()}`;
+})();
+
+// ===== THEME =====
+(function() {
+  const saved = localStorage.getItem('eran_os_theme') || 'dark';
+  setTheme(saved, true);
+})();
+
+function setTheme(name, init) {
+  document.documentElement.setAttribute('data-theme', name);
+  localStorage.setItem('eran_os_theme', name);
+  document.querySelectorAll('.theme-dot').forEach(d => d.classList.remove('active'));
+  const map = { dark: 'td-dark', dim: 'td-dim', warm: 'td-warm', light: 'td-light' };
+  const el = document.querySelector('.' + map[name]);
+  if (el) el.classList.add('active');
+}
+
+// ===== LIVE STATS =====
+(function() {
+  try {
+    const inbound = JSON.parse(localStorage.getItem('inbound_hub') || '[]');
+    document.getElementById('st-inbound-total').textContent = inbound.length;
+    document.getElementById('st-inbound-new').textContent = inbound.filter(l => (l.stage||'new') === 'new').length;
+    document.getElementById('st-inbound-progress').textContent = inbound.filter(l => l.stage === 'in_progress').length;
+    document.getElementById('st-won').textContent = inbound.filter(l => l.stage === 'won').length;
+  } catch(e) {}
+  try {
+    const outbound = JSON.parse(localStorage.getItem('outreach_hub') || '[]');
+    document.getElementById('st-outbound-total').textContent = outbound.length;
+    document.getElementById('st-outbound-pending').textContent = outbound.filter(l => (l.status||'pending') === 'pending').length;
+  } catch(e) {}
+  const now = new Date();
+  document.getElementById('statsUpdated').textContent = `עודכן ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+})();
+
+// ===== COPY EMBED =====
+function copyEmbedCode() {
+  const code = `<iframe src="contact-widget.html?project=yomkef" width="100%" height="420" frameborder="0" style="border-radius:16px"></iframe>`;
+  navigator.clipboard.writeText(code).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = '✓ הועתק';
+    setTimeout(() => btn.textContent = '📋 העתק קוד', 2000);
+  });
+}
+</script>
+</body>
+</html>

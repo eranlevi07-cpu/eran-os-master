@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>פנייה לקבלת הצעה - יום כיף</title>
+<style>
+  :root {
+    --bg: #f4f7fb;
+    --surface: #ffffff;
+    --surface2: #f1f5f9;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --text-muted: #64748b;
+    --accent: #f59e0b;
+    --accent-dark: #d97706;
+    --green: #10b981;
+    --green-bg: rgba(16,185,129,0.08);
+    --green-border: rgba(16,185,129,0.25);
+    --shadow: rgba(15,23,42,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 20px 16px 32px;
+  }
+
+  .widget {
+    background: var(--surface);
+    border-radius: 20px;
+    box-shadow: 0 4px 32px var(--shadow);
+    padding: 0;
+    width: 100%;
+    max-width: 500px;
+    overflow: hidden;
+  }
+
+  /* HEADER BAND */
+  .w-band {
+    background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+    padding: 20px 24px 18px;
+    color: #fff;
+  }
+  .w-logos-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .hdr-logo {
+    height: 52px; width: auto; max-width: 48%;
+    object-fit: contain;
+    background: white; border-radius: 10px;
+    padding: 6px 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+  }
+  .w-tagline { font-size: 11px; opacity: 0.85; text-align: center; }
+  .footer-logo { height: 38px; width: auto; max-width: 160px; object-fit: contain; display: block; margin: 0 auto 6px; }
+
+  /* GUIDE BOX */
+  .guide-box {
+    margin: 18px 20px 0;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .guide-title {
+    font-size: 13px; font-weight: 700; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .guide-items {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .guide-item {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--text-muted);
+    background: var(--surface); border-radius: 7px;
+    padding: 6px 9px; border: 1px solid var(--border);
+  }
+  .guide-item .gi-icon { font-size: 14px; flex-shrink: 0; }
+  .guide-note {
+    margin-top: 12px; font-size: 12px; color: var(--text-muted);
+    line-height: 1.6; padding: 10px 12px; border-top: 1px solid var(--border);
+    background: rgba(245,158,11,0.06); border-radius: 0 0 8px 8px;
+    margin: 10px -16px -14px; padding: 10px 16px 12px;
+  }
+  .guide-note strong { color: var(--accent-dark); font-size: 12.5px; display: block; margin-bottom: 3px; }
+
+  /* BODY */
+  .w-body { padding: 18px 20px 22px; display: flex; flex-direction: column; gap: 14px; }
+
+  /* MIC SECTION */
+  .mic-section { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .mic-btn {
+    width: 68px; height: 68px; border-radius: 50%;
+    background: linear-gradient(135deg, #f59e0b, #f97316);
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+    box-shadow: 0 4px 16px rgba(245,158,11,0.3);
+    transition: transform 0.18s, box-shadow 0.18s;
+    position: relative;
+  }
+  .mic-btn:hover { transform: scale(1.07); }
+  .mic-btn.recording {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    box-shadow: 0 4px 20px rgba(239,68,68,0.45);
+    animation: pulse-mic 1.3s infinite;
+  }
+  @keyframes pulse-mic {
+    0%,100% { box-shadow: 0 4px 16px rgba(239,68,68,0.4); }
+    50% { box-shadow: 0 4px 36px rgba(239,68,68,0.7); }
+  }
+  .mic-label { font-size: 12px; color: var(--text-muted); text-align: center; line-height: 1.4; }
+  .mic-label.rec { color: #ef4444; font-weight: 600; }
+  .interim-text { font-size: 12px; color: var(--text-muted); text-align: center; font-style: italic; min-height: 16px; padding: 0 12px; }
+  .recorded-ok {
+    display: none; align-items: center; gap: 6px; font-size: 11px; font-weight: 600;
+    color: var(--green); background: var(--green-bg); border: 1px solid var(--green-border);
+    padding: 4px 12px; border-radius: 20px;
+  }
+
+  /* DIVIDER */
+  .divider { display: flex; align-items: center; gap: 10px; font-size: 11px; color: var(--text-muted); }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* TEXTAREA */
+  .field-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 5px; }
+  .msg-area {
+    width: 100%; padding: 11px 13px;
+    background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px;
+    color: var(--text); font-size: 13px; direction: rtl; font-family: inherit;
+    resize: none; height: 90px; line-height: 1.6; transition: border-color 0.2s;
+  }
+  .msg-area:focus { outline: none; border-color: var(--accent); }
+  .msg-area::placeholder { color: var(--text-muted); }
+  .char-count { font-size: 10px; color: var(--text-muted); text-align: left; margin-top: 3px; }
+
+  /* FIELDS GRID */
+  .fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+  .field-wrap { display: flex; flex-direction: column; gap: 4px; }
+  .field-wrap.full { grid-column: 1 / -1; }
+  .field-input {
+    width: 100%; padding: 9px 11px;
+    background: var(--surface2); border: 1.5px solid var(--border); border-radius: 9px;
+    color: var(--text); font-size: 13px; direction: rtl; font-family: inherit;
+    transition: border-color 0.2s;
+  }
+  .field-input:focus { outline: none; border-color: var(--accent); }
+  .field-input::placeholder { color: var(--text-muted); }
+  .field-input.ltr { direction: ltr; text-align: right; }
+
+  /* PROPOSAL PREFERENCE */
+  .pref-title { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 7px; }
+  .pref-options { display: flex; gap: 7px; }
+  .pref-btn {
+    flex: 1; padding: 8px 6px; border-radius: 9px;
+    border: 1.5px solid var(--border); background: var(--surface2);
+    color: var(--text-muted); cursor: pointer; font-size: 12px; font-weight: 500;
+    text-align: center; transition: all 0.18s; font-family: inherit;
+  }
+  .pref-btn:hover { border-color: var(--accent); color: var(--text); }
+  .pref-btn.selected { border-color: var(--accent); background: rgba(245,158,11,0.1); color: var(--accent-dark); font-weight: 700; }
+
+  /* COMMUNITY OPT-IN */
+  .community-box {
+    background: var(--green-bg);
+    border: 1px solid var(--green-border);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .community-title { font-size: 13px; font-weight: 700; color: #059669; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .community-desc { font-size: 12px; color: var(--text-muted); line-height: 1.6; margin-bottom: 10px; }
+  .community-check-row { display: flex; align-items: flex-start; gap: 9px; cursor: pointer; }
+  .community-check-row input[type="checkbox"] {
+    width: 16px; height: 16px; accent-color: var(--green); cursor: pointer; margin-top: 1px; flex-shrink: 0;
+  }
+  .community-check-label { font-size: 12px; line-height: 1.5; color: var(--text); cursor: pointer; }
+
+  /* UPDATES OPT-IN */
+  .updates-check-row { display: flex; align-items: flex-start; gap: 9px; cursor: pointer; padding: 10px 0 0; }
+  .updates-check-row input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; margin-top: 1px; flex-shrink: 0; }
+  .updates-check-label { font-size: 11px; color: var(--text-muted); line-height: 1.5; cursor: pointer; }
+
+  /* SUBMIT */
+  .submit-btn {
+    width: 100%; padding: 13px;
+    background: linear-gradient(135deg, #f59e0b, #f97316);
+    color: #fff; font-size: 15px; font-weight: 700;
+    border: none; border-radius: 12px; cursor: pointer;
+    box-shadow: 0 4px 14px rgba(245,158,11,0.28);
+    transition: opacity 0.2s, transform 0.15s;
+    letter-spacing: -0.2px;
+  }
+  .submit-btn:hover { opacity: 0.92; transform: translateY(-1px); }
+  .submit-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+  /* FOOTER */
+  .w-footer { font-size: 11px; color: var(--text-muted); text-align: center; padding-top: 4px; }
+  .w-footer a { color: var(--accent-dark); text-decoration: none; }
+
+  /* SUCCESS SCREEN */
+  .success-screen {
+    padding: 40px 28px 36px;
+    display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px;
+  }
+  .success-icon { font-size: 56px; }
+  .success-title { font-size: 22px; font-weight: 800; }
+  .success-sub { font-size: 13px; color: var(--text-muted); line-height: 1.7; max-width: 340px; }
+  .community-join-box {
+    background: var(--green-bg); border: 1px solid var(--green-border);
+    border-radius: 14px; padding: 18px 20px; width: 100%; text-align: center;
+  }
+  .community-join-title { font-size: 14px; font-weight: 700; color: #059669; margin-bottom: 6px; }
+  .community-join-sub { font-size: 12px; color: var(--text-muted); line-height: 1.6; margin-bottom: 12px; }
+  .join-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #25D366; color: #fff;
+    font-size: 13px; font-weight: 700;
+    padding: 10px 22px; border-radius: 10px;
+    text-decoration: none; border: none; cursor: pointer;
+    box-shadow: 0 3px 12px rgba(37,211,102,0.3);
+    transition: opacity 0.2s;
+  }
+  .join-btn:hover { opacity: 0.9; }
+
+  /* REQUIRED STAR */
+  .req { color: #ef4444; margin-right: 1px; }
+
+  /* ERROR */
+  .field-input.error { border-color: #ef4444; }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 480px) {
+    body { padding: 0 0 20px; }
+    .widget { border-radius: 14px; margin: 0 10px; }
+    .w-band { padding: 14px 14px 12px; }
+    .hdr-logo { height: 40px; padding: 4px 8px; }
+    .w-tagline { font-size: 10px; }
+    .guide-box { margin: 12px 12px 0; padding: 10px 12px; }
+    .guide-items { gap: 5px; }
+    .guide-item { font-size: 11px; padding: 5px 8px; }
+    .w-body { padding: 12px 14px 18px; gap: 12px; }
+    .fields-grid { grid-template-columns: 1fr; }
+    .msg-area { height: 80px; }
+    .pref-options { gap: 5px; }
+    .submit-btn { font-size: 14px; padding: 12px; }
+    .success-screen { padding: 28px 16px; }
+    .success-title { font-size: 19px; }
+    .community-join-box { padding: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="widget" id="mainWidget">
+
+  <!-- HEADER BAND -->
+  <div class="w-band">
+    <div class="w-logos-row">
+      <img src="https://lh3.googleusercontent.com/d/1lcY_YmxQVYl1ypmszcePTG6nK0nsWcii" class="hdr-logo" alt="ERAN PRO">
+      <img src="https://lh3.googleusercontent.com/d/1BZ9hq8cuM-JCns9hpb7U9Jy5kwzbuiaE" class="hdr-logo" alt="יום כיף">
+    </div>
+    <div class="w-tagline">ימי כיף, גיבוש ונופשים מ-2004 | yomkef.co.il</div>
+  </div>
+
+  <!-- GUIDE BOX -->
+  <div class="guide-box">
+    <div class="guide-title">
+      💡 לפני שמקליטים או כותבים
+    </div>
+    <div class="guide-items">
+      <div class="guide-item"><span class="gi-icon">📅</span>תאריך / תקופה</div>
+      <div class="guide-item"><span class="gi-icon">👥</span>כמות משתתפים</div>
+      <div class="guide-item"><span class="gi-icon">📍</span>אזור מועדף</div>
+      <div class="guide-item"><span class="gi-icon">🎯</span>סגנון האירוע</div>
+    </div>
+    <div class="guide-note">
+      <strong>ככל שתפרטו יותר - ההצעה שתקבלו תהיה מדויקת ומהירה יותר.</strong>
+      כדאי גם להזכיר: האם יש תקציב בראש, אם היו אירועים דומים בעבר, ואם יש בקשות מיוחדות.
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="w-body">
+
+    <!-- MIC -->
+    <div class="mic-section">
+      <button class="mic-btn" id="micBtn" onclick="toggleRecording()" title="הקלט קולי">🎙</button>
+      <div class="mic-label" id="micLabel">לחצו על המיקרופון ודברו בחופשיות</div>
+      <div class="interim-text" id="interimText"></div>
+      <div class="recorded-ok" id="recordedOk">✓ הוקלט - אפשר גם להוסיף בכתב</div>
+    </div>
+
+    <!-- DIVIDER -->
+    <div class="divider">או כתבו</div>
+
+    <!-- MESSAGE -->
+    <div>
+      <div class="field-label">הפנייה שלכם</div>
+      <textarea class="msg-area" id="messageText"
+        placeholder="לדוגמה: &quot;מחפשים יום כיף ל-120 עובדים, מרכז הארץ, רצוי אפריל-מאי, משהו שמשלב גיבוש עם כיף - לא מה שכולם עושים&quot;"
+        oninput="updateCharCount()"></textarea>
+      <div class="char-count" id="charCount">0 תווים</div>
+    </div>
+
+    <!-- CONTACT FIELDS -->
+    <div class="fields-grid">
+      <div class="field-wrap">
+        <div class="field-label">שם מלא <span class="req">*</span></div>
+        <input class="field-input" type="text" id="fName" placeholder="ישראל ישראלי">
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">חברה / ארגון</div>
+        <input class="field-input" type="text" id="fCompany" placeholder="שם הארגון">
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">טלפון <span class="req">*</span></div>
+        <input class="field-input ltr" type="tel" id="fPhone" placeholder="050-0000000">
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">אימייל <span class="req">*</span></div>
+        <input class="field-input ltr" type="email" id="fEmail" placeholder="name@company.com">
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">כמות משתתפים</div>
+        <input class="field-input ltr" type="number" id="fParticipants" placeholder="50" min="1">
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">תקציב משוער (₪)</div>
+        <input class="field-input ltr" type="number" id="fBudget" placeholder="10000" min="0">
+      </div>
+    </div>
+
+    <!-- PROPOSAL PREFERENCE -->
+    <div>
+      <div class="pref-title">איך תרצו לקבל את ההצעה?</div>
+      <div class="pref-options">
+        <button class="pref-btn" id="pref-wa" onclick="selectPref('wa')">📱 WhatsApp</button>
+        <button class="pref-btn" id="pref-email" onclick="selectPref('email')">📧 אימייל</button>
+        <button class="pref-btn selected" id="pref-both" onclick="selectPref('both')">✉️ גם וגם</button>
+      </div>
+    </div>
+
+    <!-- COMMUNITY OPT-IN -->
+    <div class="community-box">
+      <div class="community-title">🤝 קהילת מנהלות רווחה</div>
+      <div class="community-desc">
+        קבוצת WhatsApp שקטה למנהלות ומנהלי משאבי אנוש - טיפים, רעיונות לאירועים, חידושים בתחום. אין ספאם. הודעה לכל היותר פעם-פעמיים בחודש.
+      </div>
+      <label class="community-check-row">
+        <input type="checkbox" id="communityCheck">
+        <span class="community-check-label">
+          <strong>אני מנהלת / מנהל משאבי אנוש</strong> ואשמח להיות חלק מהקבוצה ולקבל תוכן רלוונטי לתחום
+        </span>
+      </label>
+    </div>
+
+    <!-- UPDATES OPT-IN -->
+    <label class="updates-check-row">
+      <input type="checkbox" id="updatesCheck" checked>
+      <span class="updates-check-label">
+        אני מאשר/ת לקבל עדכונים, רעיונות לאירועים ומבצעים מ-eran-pro / yomkef.co.il - עד פעם בשבוע, ניתן לבטל בכל עת
+      </span>
+    </label>
+
+    <!-- SUBMIT -->
+    <button class="submit-btn" id="submitBtn" onclick="submitForm()">שלח/י פנייה ←</button>
+
+    <!-- FOOTER -->
+    <div class="w-footer" id="wFooter">
+      <img src="https://lh3.googleusercontent.com/d/18UkYdxJfqPNlpZJFh7T_bUnqqOqul-_j" class="footer-logo" alt="איגוד המפיקים">
+      ערן לוי - מפיק אירועים B2B מ-2004 · <a href="https://yomkef.co.il" target="_blank">yomkef.co.il</a>
+    </div>
+
+  </div>
+</div>
+
+<!-- SUCCESS SCREEN -->
+<div class="widget" id="successWidget" style="display:none;">
+  <div class="success-screen">
+    <div class="success-icon">🎉</div>
+    <div class="success-title">פנייתך נרשמה!</div>
+    <div class="success-sub" id="successSub">
+      נחזור אליך בהקדם עם הצעה מותאמת לצרכים שתיארת.
+    </div>
+
+    <div class="community-join-box" id="communityJoinBox" style="display:none;">
+      <div class="community-join-title">🤝 הצטרפי לקהילת מנהלות הרווחה</div>
+      <div class="community-join-sub">
+        קבוצת WhatsApp שקטה - רעיונות לאירועים, טיפים מהשטח, ומה עובד בתחום.
+        לחצי כדי להיצטרף:
+      </div>
+      <a id="joinGroupBtn" href="#" target="_blank" class="join-btn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        הצטרף/י לקבוצה
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ===== CONFIGURATION =====
+// הכנס כאן את קישורי הקבוצות לאחר שיצרת אותן
+const WHATSAPP_GROUP_LINKS = {
+  hr_managers: 'https://chat.whatsapp.com/JNK64LgEcZE1zb68JciQZb?mode=gi_t',  // חמ"ל משאבי אנוש - תכנון והפקות
+  general: 'https://chat.whatsapp.com/Dndu4QzrszZI8ZXaGmUAji?mode=gi_t'       // ערן מגיש - כרטיסים בהנחה והמלצות
+};
+
+// Monday.com - הכנס את ה-API Token שלך (Settings → Admin → API)
+const MONDAY_API_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjM2MTQwMzU3NSwiYWFpIjoxMSwidWlkIjo5ODAxMzcyLCJpYWQiOiIyMDI0LTA1LTIwVDA3OjAyOjU4LjAwMFoiLCJwZXIiOiJtZTp3cml0ZSIsImFjdGlkIjo0NDUyMjgyLCJyZ24iOiJ1c2UxIn0.9VcyLcml-4I1jcO2AXiJM2JiSRo6TGzDd1B1QnqtoE4';
+const MONDAY_BOARD_ID = '8304838265'; // לידים 2026
+
+// Anthropic - לסיכום הפנייה לפני כניסה ל-Monday
+const ANTHROPIC_API_KEY = localStorage.getItem('anthropic_api_key') || '';
+
+// ===== URL PARAMS =====
+let params = {};
+(function() {
+  const p = new URLSearchParams(window.location.search);
+  params.project = p.get('project') || 'yomkef';
+  params.webhook = p.get('webhook') || 'https://hook.eu2.make.com/ljfme7mhug3svgcjc4xjl983udhngkz3';
+  params.wa_group = p.get('wa_group') || WHATSAPP_GROUP_LINKS.hr_managers;
+
+  const cfg = {
+    yomkef: { logo:'🎉', brand:'יום כיף לארגונים', tagline:'ימי כיף, גיבוש ונופשים מ-2004 | yomkef.co.il', footer:'ערן לוי - מפיק אירועים B2B מ-2004 · yomkef.co.il' },
+    xstream: { logo:'🍹', brand:'XSTREAM BAR', tagline:'בר טראק נייד לאירועים, חתונות וימי כיף', footer:'XSTREAM BAR · Bar Truck לכל אירוע' },
+    mivtzar: { logo:'🔐', brand:'מבצר הבריחה', tagline:'חדר בריחה לקבוצות עד 180 משתתפים', footer:'מבצר הבריחה · חדר בריחה לקבוצות גדולות' }
+  };
+  const c = cfg[params.project] || cfg.yomkef;
+  const wTagline = document.getElementById('wTagline');
+  if (wTagline) wTagline.textContent = c.tagline;
+  const wFooter = document.getElementById('wFooter');
+  if (wFooter) wFooter.innerHTML = `<img src="https://lh3.googleusercontent.com/d/18UkYdxJfqPNlpZJFh7T_bUnqqOqul-_j" class="footer-logo" alt="איגוד המפיקים">${c.footer}`;
+})();
+
+// ===== STATE =====
+let isRecording = false;
+let recognition = null;
+let finalTranscript = '';
+let selectedPref = 'both';
+
+// ===== PREF SELECTOR =====
+function selectPref(val) {
+  selectedPref = val;
+  ['wa','email','both'].forEach(k => {
+    document.getElementById('pref-' + k).classList.toggle('selected', k === val);
+  });
+}
+
+// ===== RECORDING =====
+function toggleRecording() {
+  isRecording ? stopRecording() : startRecording();
+}
+
+function startRecording() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { alert('הדפדפן שלך לא תומך בהקלטה קולית. אנא השתמש ב-Chrome.'); return; }
+
+  isRecording = true;
+  finalTranscript = '';
+  document.getElementById('micBtn').classList.add('recording');
+  document.getElementById('micBtn').textContent = '⏹';
+  document.getElementById('micLabel').textContent = 'מקליט... לחצו שוב לעצירה';
+  document.getElementById('micLabel').classList.add('rec');
+  document.getElementById('recordedOk').style.display = 'none';
+
+  recognition = new SR();
+  recognition.lang = 'he-IL';
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.onresult = e => {
+    let interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) finalTranscript += e.results[i][0].transcript + ' ';
+      else interim += e.results[i][0].transcript;
+    }
+    document.getElementById('interimText').textContent = interim;
+    if (finalTranscript) { document.getElementById('messageText').value = finalTranscript.trim(); updateCharCount(); }
+  };
+  recognition.onerror = e => {
+    if (e.error === 'not-allowed') alert('אין גישה למיקרופון.\nלחץ על אייקון המנעול בכתובת הדפדפן ואפשר מיקרופון.');
+    else if (e.error === 'network') alert('שגיאת רשת. בדוק חיבור אינטרנט.');
+    else alert('שגיאה: ' + e.error);
+    stopRecording();
+  };
+  recognition.onend = () => { if (isRecording) recognition.start(); };
+  recognition.start();
+}
+
+function stopRecording() {
+  isRecording = false;
+  if (recognition) { recognition.stop(); recognition = null; }
+  document.getElementById('micBtn').classList.remove('recording');
+  document.getElementById('micBtn').textContent = '🎙';
+  document.getElementById('micLabel').textContent = 'לחצו על המיקרופון ודברו בחופשיות';
+  document.getElementById('micLabel').classList.remove('rec');
+  document.getElementById('interimText').textContent = '';
+  if (finalTranscript.trim()) {
+    document.getElementById('recordedOk').style.display = 'inline-flex';
+  }
+}
+
+function updateCharCount() {
+  const len = document.getElementById('messageText').value.length;
+  document.getElementById('charCount').textContent = len + ' תווים';
+}
+
+// ===== AI SUMMARY =====
+async function summarizeLead(p) {
+  const systemPrompt = `אתה עוזר של ערן לוי, מפיק אירועים B2B מ-2004 (yomkef.co.il).
+קיבלת פנייה מלקוח פוטנציאלי. כתוב סיכום קצר בעברית - עד 3 שורות - שיעזור לערן להבין מיד:
+1. מה ביקשו בדיוק (סוג אירוע, מספר אנשים, תאריך אם הוזכר)
+2. רמת החום של הליד
+3. מה הצעד הבא המומלץ
+כתוב ישיר, ענייני, בלי קלישאות.`;
+
+  const userMsg = [
+    `שם: ${p.name}`,
+    p.company  ? `חברה: ${p.company}`        : '',
+    p.participants ? `משתתפים: ${p.participants}` : '',
+    p.budget   ? `תקציב: ${p.budget} ₪`      : '',
+    `פנייה: ${p.message}`
+  ].filter(Boolean).join('\n');
+
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type':                           'application/json',
+      'x-api-key':                              ANTHROPIC_API_KEY,
+      'anthropic-version':                      '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model:      'claude-haiku-4-5-20251001',
+      max_tokens: 300,
+      system:     systemPrompt,
+      messages:   [{ role: 'user', content: userMsg }]
+    })
+  });
+
+  const data = await resp.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.content[0].text.trim();
+}
+
+// ===== MONDAY.COM INTEGRATION =====
+async function createMondayLead(p, summary) {
+  const channelMap = { wa: 'WhatsApp', email: 'אימייל', both: 'WhatsApp + אימייל' };
+
+  // פנייה גולמית + מטא
+  let rawText = p.message || '';
+  const proposalVia = channelMap[p.proposal_via] || '';
+  if (proposalVia)    rawText += `\n\nהצעה להישלח: ${proposalVia}`;
+  if (p.community_join) rawText += '\n[ביקש להצטרף לקהילת מנהלות הרווחה]';
+
+  const sourceMap = { yomkef: '0', xstream: '0', mivtzar: '0' }; // אתר הבית
+
+  const colVals = {
+    lead_phone:         { phone: p.phone, countryShortName: 'IL' },
+    lead_email:         { email: p.email, text: p.email },
+    lead_company:       p.company || '',
+    long_text_mkr5cdkg: { text: rawText },
+    check_mkkbxnb:      { checked: p.updates_ok ? 'true' : 'false' },
+    lead_status:        { index: 14 },   // ליד חדש
+    status_mkkbzpdx:    { index: 2  },   // ליד לסיווג
+    color_mkvfgkar:     { index: 109 },  // תעדוף: בינוני (ערן יסווג ידנית)
+    status:             { index: 0  }    // מקור: אתר הבית
+  };
+  if (summary)        colVals.text_mky89x78     = summary;
+  if (p.participants) colVals.numbers_mkkbavb2  = parseInt(p.participants);
+  if (p.budget)       colVals.text_mkn8fj1h     = p.budget.toString();
+
+  const query = `mutation ($itemName: String!, $colVals: JSON!) {
+    create_item(board_id: ${MONDAY_BOARD_ID}, item_name: $itemName, column_values: $colVals) { id }
+  }`;
+
+  const resp = await fetch('https://api.monday.com/v2', {
+    method: 'POST',
+    headers: {
+      'Content-Type':  'application/json',
+      'Authorization': MONDAY_API_TOKEN,
+      'API-Version':   '2024-01'
+    },
+    body: JSON.stringify({
+      query,
+      variables: {
+        itemName: p.name,
+        colVals:  JSON.stringify(colVals)
+      }
+    })
+  });
+
+  const data = await resp.json();
+  if (data.errors) throw new Error(data.errors[0].message);
+  return data.data.create_item.id;
+}
+
+// ===== SUBMIT =====
+async function submitForm() {
+  const name = document.getElementById('fName').value.trim();
+  const phone = document.getElementById('fPhone').value.trim();
+  const email = document.getElementById('fEmail').value.trim();
+  const message = document.getElementById('messageText').value.trim();
+  const company = document.getElementById('fCompany').value.trim();
+  const communityJoin = document.getElementById('communityCheck').checked;
+  const updatesOk = document.getElementById('updatesCheck').checked;
+
+  // Validation
+  let hasError = false;
+  ['fName','fPhone','fEmail'].forEach(id => document.getElementById(id).classList.remove('error'));
+
+  if (!name) { document.getElementById('fName').classList.add('error'); document.getElementById('fName').focus(); hasError = true; }
+  if (!phone) { document.getElementById('fPhone').classList.add('error'); if (!hasError) { document.getElementById('fPhone').focus(); hasError = true; } }
+  if (!email || !email.includes('@')) { document.getElementById('fEmail').classList.add('error'); if (!hasError) { document.getElementById('fEmail').focus(); hasError = true; } }
+  if (hasError) return;
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = 'שולח...';
+
+  const participants = document.getElementById('fParticipants').value || '';
+  const budget = document.getElementById('fBudget').value || '';
+
+  const payload = {
+    name, phone, email, company, message,
+    participants, budget,
+    proposal_via: selectedPref,
+    community_join: communityJoin,
+    updates_ok: updatesOk,
+    project: params.project,
+    source: 'widget',
+    ts: new Date().toISOString(),
+    referrer: document.referrer || ''
+  };
+
+  // Save to parent localStorage (when embedded in iframe on same domain)
+  try {
+    const store = window.parent !== window ? window.parent.localStorage : localStorage;
+    const existing = JSON.parse(store.getItem('inbound_hub') || '[]');
+    existing.unshift({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+      name, phone, email, company,
+      source: 'website', mizum: params.project,
+      stage: 'new', channel: selectedPref === 'email' ? 'email' : 'whatsapp',
+      request: message || '(לא צוין)',
+      notes: [],
+      community_join: communityJoin,
+      updates_ok: updatesOk,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    });
+    store.setItem('inbound_hub', JSON.stringify(existing));
+  } catch(e) {}
+
+  // Send to webhook
+  if (params.webhook) {
+    try { await fetch(params.webhook, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) }); } catch(e) {}
+  }
+
+  // Send to Monday.com (with optional AI summary)
+  if (MONDAY_API_TOKEN) {
+    try {
+      let summary = '';
+      if (ANTHROPIC_API_KEY && payload.message) {
+        summary = await summarizeLead(payload);
+      }
+      const mondayId = await createMondayLead(payload, summary);
+      console.log('Monday item created:', mondayId);
+    } catch(e) {
+      console.error('Monday.com error:', e);
+      alert('שגיאת Monday: ' + e.message);
+    }
+  }
+
+  // Show success
+  document.getElementById('mainWidget').style.display = 'none';
+  const sw = document.getElementById('successWidget');
+  sw.style.display = 'block';
+
+  // Success copy
+  const prefLabel = { wa:'נחזור אליך ב-WhatsApp', email:'נשלח לך הצעה לאימייל', both:'נשלח לך הצעה לאימייל וב-WhatsApp' }[selectedPref];
+  document.getElementById('successSub').innerHTML = `
+    קיבלנו את פנייתך.<br>
+    <strong>${prefLabel}</strong> בהקדם.<br>
+    <span style="color:var(--text-muted);font-size:12px;">הצוות יעיין בפרטים ויחזור עם הצעה מותאמת.</span><br>
+    <a href="https://yomkef.co.il" target="_blank" style="display:inline-block;margin-top:10px;font-size:13px;font-weight:600;color:var(--accent-dark);text-decoration:none;border:1.5px solid var(--accent);border-radius:8px;padding:7px 18px;">🎪 לצפייה בדוגמאות לאירועים ←</a>
+  `;
+
+  // Community join
+  if (communityJoin && params.wa_group && params.wa_group !== 'WHATSAPP_GROUP_LINK_HERE') {
+    document.getElementById('communityJoinBox').style.display = 'block';
+    document.getElementById('joinGroupBtn').href = params.wa_group;
+  } else if (communityJoin) {
+    // Link not configured yet - show placeholder message
+    document.getElementById('communityJoinBox').style.display = 'block';
+    document.getElementById('communityJoinBox').innerHTML = `
+      <div class="community-join-title">🤝 הצטרפות לקהילה</div>
+      <div class="community-join-sub">ניצור איתך קשר לגבי הצטרפות לקבוצה בפנייה הקרובה שלנו.</div>
+    `;
+  }
+}
+</script>
+</body>
+</html>

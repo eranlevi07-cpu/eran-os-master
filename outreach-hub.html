@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מוקד הפניות היזומות</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #222536;
+    --border: #2e3349;
+    --accent-supplier: #3b82f6;
+    --accent-producer: #8b5cf6;
+    --accent-hr: #10b981;
+    --text: #e2e8f0;
+    --text-muted: #64748b;
+    --approved: #10b981;
+    --rejected: #ef4444;
+    --pending: #f59e0b;
+    --sent: #3b82f6;
+    --opted-out: #6b7280;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; }
+
+  /* HEADER */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+  .header .date { color: var(--text-muted); font-size: 13px; }
+
+  /* DAILY TARGETS */
+  .targets {
+    display: flex;
+    gap: 12px;
+    padding: 16px 24px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .target-card {
+    flex: 1;
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+  }
+  .target-card .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .date-toggle { display: flex; gap: 2px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 2px; }
+  .date-toggle button { padding: 4px 10px; border: none; border-radius: 4px; background: transparent; color: var(--text-muted); cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.15s; }
+  .date-toggle button.active { background: var(--surface); color: var(--text); }
+  .target-card .progress-row { display: flex; align-items: center; gap: 10px; }
+  .target-card .count { font-size: 22px; font-weight: 700; }
+  .target-card .goal { font-size: 12px; color: var(--text-muted); }
+  .progress-bar { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 2px; transition: width 0.4s; }
+  .supplier-color { background: var(--accent-supplier); }
+  .producer-color { background: var(--accent-producer); }
+  .hr-color { background: var(--accent-hr); }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 0;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .tab {
+    padding: 12px 20px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    color: var(--text-muted);
+    font-weight: 500;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--text); border-bottom-color: var(--accent-supplier); }
+  .tab.active.producer { border-bottom-color: var(--accent-producer); }
+  .tab.active.hr { border-bottom-color: var(--accent-hr); }
+  .tab .badge {
+    background: var(--border);
+    border-radius: 10px;
+    padding: 1px 7px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .tab.active .badge { background: var(--accent-supplier); color: white; }
+  .tab.active.producer .badge { background: var(--accent-producer); }
+  .tab.active.hr .badge { background: var(--accent-hr); }
+
+  /* TOOLBAR */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .toolbar-left { display: flex; align-items: center; gap: 10px; flex: 1; }
+  .toolbar .selected-count { font-size: 13px; color: var(--text-muted); }
+  .search-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 12px;
+    color: var(--text);
+    font-size: 13px;
+    width: 220px;
+    direction: rtl;
+  }
+  .search-box:focus { outline: none; border-color: var(--accent-supplier); }
+  .filter-select {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 10px;
+    color: var(--text);
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .btn {
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: opacity 0.2s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn-approve { background: var(--approved); color: white; }
+  .btn-reject { background: var(--rejected); color: white; }
+  .btn-export { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+  .btn-import { background: var(--accent-supplier); color: white; }
+  .btn-sm { padding: 3px 9px; font-size: 12px; border-radius: 4px; }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; padding: 0 24px 24px; }
+  table { width: 100%; border-collapse: collapse; min-width: 900px; }
+  thead th {
+    text-align: right;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+    background: var(--surface2);
+    position: sticky; top: 0;
+  }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  tbody tr:hover { background: var(--surface2); }
+  tbody tr.selected { background: rgba(59,130,246,0.08); }
+  tbody td { padding: 10px 12px; vertical-align: top; }
+  .check-col { width: 36px; }
+  input[type="checkbox"] { accent-color: var(--accent-supplier); width: 14px; height: 14px; cursor: pointer; }
+
+  /* CELLS */
+  .supplier-name { font-weight: 600; font-size: 13px; }
+  .supplier-type { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .region-tag {
+    display: inline-block;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 7px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .fit-badge {
+    display: inline-block;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .fit-high { background: rgba(16,185,129,0.15); color: #10b981; }
+  .fit-medium { background: rgba(245,158,11,0.15); color: #f59e0b; }
+  .fit-low { background: rgba(239,68,68,0.15); color: #ef4444; }
+
+  .status-badge {
+    display: inline-block;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .status-pending { background: rgba(245,158,11,0.15); color: #f59e0b; }
+  .status-approved { background: rgba(16,185,129,0.15); color: #10b981; }
+  .status-rejected { background: rgba(239,68,68,0.15); color: #ef4444; }
+  .status-sent { background: rgba(59,130,246,0.15); color: #3b82f6; }
+  .status-opted_out { background: rgba(107,114,128,0.15); color: #6b7280; }
+  .status-suppressed { background: rgba(239,68,68,0.08); color: #ef4444; border: 1px solid rgba(239,68,68,0.2); }
+  tr.suppressed-row { opacity: 0.45; }
+  .btn-optout { background: rgba(107,114,128,0.2); color: #9ca3af; border: 1px solid rgba(107,114,128,0.3); }
+  .btn-optout:hover { background: rgba(239,68,68,0.15); color: #ef4444; }
+
+  .channel-icon { font-size: 13px; }
+
+  /* MESSAGE PREVIEW */
+  .msg-cell { max-width: 260px; }
+  .msg-preview {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.4;
+    cursor: pointer;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .msg-preview:hover { color: var(--text); }
+  .edit-link { font-size: 11px; color: var(--accent-supplier); cursor: pointer; margin-top: 3px; display: inline-block; }
+
+  /* ACTIONS */
+  .actions-cell { display: flex; gap: 4px; flex-wrap: wrap; }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    width: 600px;
+    max-width: 95vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 24px;
+  }
+  .modal h2 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+  .modal-section { margin-bottom: 14px; }
+  .modal-section label { display: block; font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 5px; }
+  .modal-section .value { font-size: 13px; line-height: 1.5; }
+  .modal-section textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px;
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.5;
+    resize: vertical;
+    min-height: 120px;
+    direction: rtl;
+  }
+  .modal-section textarea:focus { outline: none; border-color: var(--accent-supplier); }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+
+  /* IMPORT ZONE */
+  .import-zone {
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: 32px;
+    text-align: center;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: border-color 0.2s;
+    margin: 24px;
+  }
+  .import-zone:hover { border-color: var(--accent-supplier); color: var(--text); }
+  .import-zone .icon { font-size: 32px; margin-bottom: 8px; }
+  .import-zone p { font-size: 13px; }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 60px 24px;
+    color: var(--text-muted);
+  }
+  .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; }
+
+  /* PANEL VISIBILITY */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 13px;
+    transition: transform 0.3s;
+    z-index: 300;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* CONTACT INFO */
+  .contact-info { font-size: 12px; line-height: 1.6; }
+  .contact-info a { color: var(--accent-supplier); text-decoration: none; }
+
+  /* DASHBOARD */
+  .dash-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; padding: 20px 24px 0; }
+  .dash-grid-wide { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; padding: 16px 24px; }
+  .dash-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+  .dash-card h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 14px; }
+  .dash-targets { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; padding: 20px 24px 0; }
+  .dash-target { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .dash-target .lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 8px; }
+  .dash-target .num { font-size: 28px; font-weight: 700; line-height: 1; }
+  .dash-target .sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  .dash-target .pb { height: 3px; background: var(--border); border-radius: 2px; margin-top: 10px; overflow: hidden; }
+  .dash-target .pb-fill { height: 100%; border-radius: 2px; transition: width 0.5s; }
+
+  /* FUNNEL */
+  .funnel-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .funnel-row:last-child { margin-bottom: 0; }
+  .funnel-label { font-size: 12px; color: var(--text-muted); width: 70px; text-align: left; flex-shrink: 0; }
+  .funnel-bar-wrap { flex: 1; height: 20px; background: var(--border); border-radius: 4px; overflow: hidden; position: relative; }
+  .funnel-bar { height: 100%; border-radius: 4px; transition: width 0.4s; display: flex; align-items: center; padding-right: 8px; min-width: 2px; }
+  .funnel-bar span { font-size: 11px; font-weight: 600; color: white; white-space: nowrap; }
+  .funnel-track-label { font-size: 11px; font-weight: 600; width: 32px; text-align: center; }
+
+  /* ACTION CARDS */
+  .action-items { display: flex; flex-direction: column; gap: 8px; }
+  .action-item { display: flex; align-items: center; gap: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; cursor: pointer; transition: border-color 0.2s; }
+  .action-item:hover { border-color: var(--accent-supplier); }
+  .action-item.urgent { border-color: rgba(245,158,11,0.4); }
+  .action-item .ai { font-size: 20px; }
+  .action-item .at { flex: 1; }
+  .action-item .at strong { display: block; font-size: 13px; }
+  .action-item .at span { font-size: 11px; color: var(--text-muted); }
+  .action-item .ac { font-size: 11px; color: var(--accent-supplier); font-weight: 600; }
+  .action-item.done { opacity: 0.4; cursor: default; }
+  .action-item.done:hover { border-color: var(--border); }
+
+  /* WEEK STATS */
+  .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--border); }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-row .sk { font-size: 12px; color: var(--text-muted); }
+  .stat-row .sv { font-size: 13px; font-weight: 600; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div>
+    <h1>מוקד הפניות היזומות</h1>
+    <div class="date" id="todayDate"></div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <a href="index.html" style="font-size:12px;color:#64748b;text-decoration:none;padding:5px 10px;border:1px solid #2e3349;border-radius:6px;background:#222536;white-space:nowrap;">← ערן לוי OS</a>
+    <button class="btn btn-export" onclick="exportCSV()">&#8595; ייצוא CSV</button>
+    <button class="btn btn-import" onclick="openImport()">&#8593; טען נתונים</button>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" id="tab-dashboard" onclick="switchTab('dashboard')">
+    📊 דשבורד
+  </div>
+  <div class="tab" id="tab-supplier" onclick="switchTab('supplier')">
+    ספקים <span class="badge" id="badge-supplier">0</span>
+  </div>
+  <div class="tab producer" id="tab-producer" onclick="switchTab('producer')">
+    מפיקים <span class="badge" id="badge-producer">0</span>
+  </div>
+  <div class="tab hr" id="tab-hr" onclick="switchTab('hr')">
+    לקוחות HR <span class="badge" id="badge-hr">0</span>
+  </div>
+  <div class="tab" id="tab-suppression" onclick="switchTab('suppression')" style="margin-right:auto;">
+    🚫 חסומים <span class="badge" id="badge-suppression" style="background:rgba(239,68,68,0.2);color:#ef4444;">0</span>
+  </div>
+</div>
+
+<!-- DASHBOARD PANEL -->
+<div class="tab-panel active" id="panel-dashboard">
+
+  <!-- TARGETS ROW -->
+  <div class="dash-targets">
+    <div class="dash-target">
+      <div class="lbl">ספקים היום</div>
+      <div class="num" id="d-supplier-count">0</div>
+      <div class="sub">מתוך יעד 150</div>
+      <div class="pb"><div class="pb-fill supplier-color" id="d-supplier-bar" style="width:0%"></div></div>
+    </div>
+    <div class="dash-target">
+      <div class="lbl">מפיקים היום</div>
+      <div class="num" id="d-producer-count">0</div>
+      <div class="sub">מתוך יעד 50</div>
+      <div class="pb"><div class="pb-fill producer-color" id="d-producer-bar" style="width:0%"></div></div>
+    </div>
+    <div class="dash-target">
+      <div class="lbl">לקוחות HR היום</div>
+      <div class="num" id="d-hr-count">0</div>
+      <div class="sub">מתוך יעד 20</div>
+      <div class="pb"><div class="pb-fill hr-color" id="d-hr-bar" style="width:0%"></div></div>
+    </div>
+    <div class="dash-target">
+      <div class="lbl">אושרו היום</div>
+      <div class="num" id="d-approved-count" style="color:var(--approved);">0</div>
+      <div class="sub" id="d-sent-count">0 נשלחו</div>
+      <div class="pb"><div class="pb-fill" id="d-approved-bar" style="width:0%;background:var(--approved);"></div></div>
+    </div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="dash-grid-wide">
+
+    <!-- LEFT: FUNNEL + ACTIONS -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+
+      <!-- WHAT TO DO NOW -->
+      <div class="dash-card">
+        <h3>מה לעשות עכשיו</h3>
+        <div class="action-items" id="action-items">
+          <div class="action-item done"><div class="ai">⏳</div><div class="at"><strong>טוען...</strong><span>מחשב מצב</span></div></div>
+        </div>
+      </div>
+
+      <!-- FUNNEL -->
+      <div class="dash-card">
+        <h3>משפך יומי - היום</h3>
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr>
+                <th style="font-size:11px;color:var(--text-muted);text-align:right;padding:4px 8px;font-weight:500;">מסלול</th>
+                <th style="font-size:11px;color:var(--text-muted);text-align:center;padding:4px 8px;font-weight:500;">נטענו</th>
+                <th style="font-size:11px;color:var(--text-muted);text-align:center;padding:4px 8px;font-weight:500;">ממתינים</th>
+                <th style="font-size:11px;color:var(--text-muted);text-align:center;padding:4px 8px;font-weight:500;">אושרו</th>
+                <th style="font-size:11px;color:var(--text-muted);text-align:center;padding:4px 8px;font-weight:500;">נשלחו</th>
+                <th style="font-size:11px;color:var(--text-muted);text-align:center;padding:4px 8px;font-weight:500;">נדחו</th>
+                <th style="font-size:11px;color:var(--text-muted);text-align:center;padding:4px 8px;font-weight:500;">חסומים</th>
+              </tr>
+            </thead>
+            <tbody id="funnel-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: STATS + QUICK ACTIONS -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+
+      <!-- QUICK ACTIONS -->
+      <div class="dash-card">
+        <h3>פעולות מהירות</h3>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <button class="btn btn-import" style="width:100%;justify-content:center;" onclick="openImport()">&#8593; טען batch חדש</button>
+          <button class="btn btn-approve" style="width:100%;justify-content:center;" onclick="switchTab('supplier')">ספקים לאישור</button>
+          <button class="btn btn-export" style="width:100%;justify-content:center;" onclick="exportAllApproved()">&#8595; ייצוא כל המאושרים</button>
+        </div>
+      </div>
+
+      <!-- CUMULATIVE STATS -->
+      <div class="dash-card">
+        <h3>סה"כ כל הזמנים</h3>
+        <div id="all-time-stats">
+          <div class="stat-row"><span class="sk">סה"כ ספקים</span><span class="sv" id="at-supplier">0</span></div>
+          <div class="stat-row"><span class="sk">סה"כ מפיקים</span><span class="sv" id="at-producer">0</span></div>
+          <div class="stat-row"><span class="sk">סה"כ לקוחות HR</span><span class="sv" id="at-hr">0</span></div>
+          <div class="stat-row"><span class="sk">סה"כ אושרו</span><span class="sv" id="at-approved" style="color:var(--approved);">0</span></div>
+          <div class="stat-row"><span class="sk">סה"כ נשלחו</span><span class="sv" id="at-sent" style="color:var(--sent);">0</span></div>
+          <div class="stat-row"><span class="sk">חסומים</span><span class="sv" id="at-suppression" style="color:var(--rejected);">0</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- SUPPLIER PANEL -->
+<div class="tab-panel active" id="panel-supplier">
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <input type="checkbox" id="selectAll-supplier" onchange="toggleSelectAll('supplier')">
+      <span class="selected-count" id="sel-supplier">0 נבחרו</span>
+      <div class="date-toggle" id="dttoggle-supplier">
+        <button class="active" onclick="filterByDate('supplier','today');setDateBtn('supplier','today')">היום</button>
+        <button onclick="filterByDate('supplier','all');setDateBtn('supplier','all')">הכל</button>
+      </div>
+      <input class="search-box" type="text" placeholder="חיפוש ספק..." oninput="filterTable('supplier',this.value)">
+      <select class="filter-select" onchange="filterByStatus('supplier',this.value)">
+        <option value="">כל הסטטוסים</option>
+        <option value="pending">ממתין</option>
+        <option value="approved">אושר</option>
+        <option value="rejected">נדחה</option>
+        <option value="sent">נשלח</option>
+      </select>
+      <select class="filter-select" onchange="filterByFit('supplier',this.value)">
+        <option value="">כל הציונים</option>
+        <option value="High">High Fit</option>
+        <option value="Medium">Medium Fit</option>
+        <option value="Low">Low Fit</option>
+      </select>
+    </div>
+    <button class="btn btn-approve btn-sm" onclick="bulkAction('supplier','approved')">&#10003; אשר נבחרים</button>
+    <button class="btn btn-reject btn-sm" onclick="bulkAction('supplier','rejected')">&#10007; דחה נבחרים</button>
+  </div>
+  <div class="table-wrap">
+    <table id="tbl-supplier">
+      <thead>
+        <tr>
+          <th class="check-col"></th>
+          <th>ספק</th>
+          <th>אזור</th>
+          <th>שירות</th>
+          <th>קשר</th>
+          <th>ערוץ</th>
+          <th>התאמה</th>
+          <th>הודעה</th>
+          <th>סטטוס</th>
+          <th>פעולות</th>
+        </tr>
+      </thead>
+      <tbody id="body-supplier"></tbody>
+    </table>
+    <div class="empty-state" id="empty-supplier">
+      <div class="icon">📋</div>
+      <p>אין ספקים עדיין - טען נתונים מהסוכן</p>
+    </div>
+  </div>
+</div>
+
+<!-- PRODUCER PANEL -->
+<div class="tab-panel" id="panel-producer">
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <input type="checkbox" id="selectAll-producer" onchange="toggleSelectAll('producer')">
+      <span class="selected-count" id="sel-producer">0 נבחרו</span>
+      <div class="date-toggle" id="dttoggle-producer">
+        <button class="active" onclick="filterByDate('producer','today');setDateBtn('producer','today')">היום</button>
+        <button onclick="filterByDate('producer','all');setDateBtn('producer','all')">הכל</button>
+      </div>
+      <input class="search-box" type="text" placeholder="חיפוש מפיק..." oninput="filterTable('producer',this.value)">
+      <select class="filter-select" onchange="filterByStatus('producer',this.value)">
+        <option value="">כל הסטטוסים</option>
+        <option value="pending">ממתין</option>
+        <option value="approved">אושר</option>
+        <option value="rejected">נדחה</option>
+        <option value="sent">נשלח</option>
+      </select>
+    </div>
+    <button class="btn btn-approve btn-sm" onclick="bulkAction('producer','approved')">&#10003; אשר נבחרים</button>
+    <button class="btn btn-reject btn-sm" onclick="bulkAction('producer','rejected')">&#10007; דחה נבחרים</button>
+  </div>
+  <div class="table-wrap">
+    <table id="tbl-producer">
+      <thead>
+        <tr>
+          <th class="check-col"></th>
+          <th>משרד / מפיק</th>
+          <th>אזור</th>
+          <th>סוגי אירועים</th>
+          <th>קשר</th>
+          <th>ערוץ</th>
+          <th>הודעה</th>
+          <th>סטטוס</th>
+          <th>פעולות</th>
+        </tr>
+      </thead>
+      <tbody id="body-producer"></tbody>
+    </table>
+    <div class="empty-state" id="empty-producer">
+      <div class="icon">🎬</div>
+      <p>אין מפיקים עדיין - טען נתונים מהסוכן</p>
+    </div>
+  </div>
+</div>
+
+<!-- HR PANEL -->
+<div class="tab-panel" id="panel-hr">
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <input type="checkbox" id="selectAll-hr" onchange="toggleSelectAll('hr')">
+      <span class="selected-count" id="sel-hr">0 נבחרו</span>
+      <div class="date-toggle" id="dttoggle-hr">
+        <button class="active" onclick="filterByDate('hr','today');setDateBtn('hr','today')">היום</button>
+        <button onclick="filterByDate('hr','all');setDateBtn('hr','all')">הכל</button>
+      </div>
+      <input class="search-box" type="text" placeholder="חיפוש חברה..." oninput="filterTable('hr',this.value)">
+      <select class="filter-select" onchange="filterByStatus('hr',this.value)">
+        <option value="">כל הסטטוסים</option>
+        <option value="pending">ממתין</option>
+        <option value="approved">אושר</option>
+        <option value="rejected">נדחה</option>
+        <option value="sent">נשלח</option>
+      </select>
+    </div>
+    <button class="btn btn-approve btn-sm" onclick="bulkAction('hr','approved')">&#10003; אשר נבחרים</button>
+    <button class="btn btn-reject btn-sm" onclick="bulkAction('hr','rejected')">&#10007; דחה נבחרים</button>
+  </div>
+  <div class="table-wrap">
+    <table id="tbl-hr">
+      <thead>
+        <tr>
+          <th class="check-col"></th>
+          <th>חברה</th>
+          <th>תעשייה</th>
+          <th>עובדים</th>
+          <th>איש קשר</th>
+          <th>ערוץ</th>
+          <th>טריגר</th>
+          <th>הודעה</th>
+          <th>סטטוס</th>
+          <th>פעולות</th>
+        </tr>
+      </thead>
+      <tbody id="body-hr"></tbody>
+    </table>
+    <div class="empty-state" id="empty-hr">
+      <div class="icon">🏢</div>
+      <p>אין לקוחות HR עדיין - טען נתונים מהסוכן</p>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal">
+    <h2>טעינת נתונים מסוכן</h2>
+    <div class="modal-section">
+      <label>סוג יחידה</label>
+      <select class="filter-select" id="importType" style="width:100%;padding:8px 10px;font-size:13px;">
+        <option value="supplier">ספקים</option>
+        <option value="producer">מפיקים</option>
+        <option value="hr">לקוחות HR</option>
+      </select>
+    </div>
+    <div class="modal-section">
+      <label>הדבק JSON מהסוכן</label>
+      <textarea id="importJSON" style="min-height:200px;font-family:monospace;font-size:12px;" placeholder='[
+  {
+    "name": "שם ספק",
+    "type": "קייטרינג",
+    "region": "מרכז",
+    "website": "https://...",
+    "contact_name": "ישראל ישראלי",
+    "contact_role": "בעלים",
+    "email": "...",
+    "phone": "050-...",
+    "whatsapp": "050-...",
+    "channel": "whatsapp",
+    "fit": "High",
+    "main_offer": "קייטרינג לאירועים לקבוצות",
+    "trigger": "",
+    "message": "שלום..."
+  }
+]'></textarea>
+    </div>
+    <div class="modal-section">
+      <label style="color:#f59e0b;">או טען נתוני דמו לדוגמה</label>
+      <button class="btn btn-export" onclick="loadDemo()" style="margin-top:4px;">טען דמו</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-export" onclick="closeImport()">ביטול</button>
+      <button class="btn btn-import" onclick="importData()">&#8593; טען</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MESSAGE MODAL -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h2 id="editModalTitle">עריכת פנייה</h2>
+    <div class="modal-section">
+      <label>פרטי ספק</label>
+      <div class="value" id="editModalInfo" style="background:var(--bg);padding:10px;border-radius:6px;font-size:12px;line-height:1.6;"></div>
+    </div>
+    <div class="modal-section">
+      <label>הודעת פנייה</label>
+      <textarea id="editMessageText"></textarea>
+    </div>
+    <div class="modal-section">
+      <label>ערוץ שליחה</label>
+      <select class="filter-select" id="editChannel" style="width:100%;padding:8px 10px;font-size:13px;">
+        <option value="whatsapp">WhatsApp</option>
+        <option value="email">Email</option>
+        <option value="linkedin">LinkedIn</option>
+        <option value="form">טופס קשר</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-export" onclick="closeEdit()">ביטול</button>
+      <button class="btn btn-approve" onclick="saveEdit()">&#10003; שמור ואשר</button>
+    </div>
+  </div>
+</div>
+
+<!-- SUPPRESSION PANEL -->
+<div class="tab-panel" id="panel-suppression">
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <span style="font-size:13px;color:var(--text-muted);">כל מי שביקש להפסיק לקבל פניות. מוגן מפני שליחה חוזרת.</span>
+    </div>
+    <button class="btn btn-export" onclick="exportSuppression()">&#8595; ייצוא רשימה</button>
+    <button class="btn btn-reject btn-sm" onclick="clearSuppression()">מחק הכל</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>שם</th>
+          <th>טלפון</th>
+          <th>אימייל</th>
+          <th>סוג מקור</th>
+          <th>תאריך ביטול</th>
+          <th>פעולות</th>
+        </tr>
+      </thead>
+      <tbody id="body-suppression"></tbody>
+    </table>
+    <div class="empty-state" id="empty-suppression">
+      <div class="icon">✅</div>
+      <p>אין חסומים - כל הפניות פתוחות</p>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== STATE =====
+const TODAY = new Date().toISOString().slice(0,10);
+
+const state = {
+  supplier: [],
+  producer: [],
+  hr: [],
+  suppression: [], // [{ name, phone, email, source_type, opted_out_date }]
+  activeTab: 'supplier',
+  editingId: null,
+  editingType: null,
+  filters: { supplier: {q:'',status:'',fit:'',dateMode:'today'}, producer: {q:'',status:'',fit:'',dateMode:'today'}, hr: {q:'',status:'',fit:'',dateMode:'today'} }
+};
+
+const GOALS = { supplier: 150, producer: 50, hr: 20 };
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('todayDate').textContent = new Date().toLocaleDateString('he-IL', {weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  loadFromStorage();
+  render('supplier'); render('producer'); render('hr');
+  renderSuppression();
+  renderDashboard();
+});
+
+// ===== TAB SWITCHING =====
+function switchTab(type) {
+  ['dashboard','supplier','producer','hr','suppression'].forEach(t => {
+    document.getElementById('panel-'+t).classList.toggle('active', t===type);
+    document.getElementById('tab-'+t).classList.toggle('active', t===type);
+  });
+  state.activeTab = type;
+  if (type === 'suppression') renderSuppression();
+  if (type === 'dashboard') renderDashboard();
+}
+
+// ===== RENDER =====
+function render(type) {
+  const data = getFiltered(type);
+  const tbody = document.getElementById('body-'+type);
+  const empty = document.getElementById('empty-'+type);
+  const todayCount = state[type].filter(x=>x.date===TODAY).length;
+  const totalCount = state[type].length;
+  document.getElementById('badge-'+type).textContent = state.filters[type].dateMode==='today' ? todayCount : totalCount;
+
+  if (data.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = data.map(item => renderRow(item, type)).join('');
+  updateSelectedCount(type);
+}
+
+function renderRow(item, type) {
+  const fitClass = item.fit === 'High' ? 'fit-high' : item.fit === 'Medium' ? 'fit-medium' : 'fit-low';
+  const statusClass = 'status-' + (item.status || 'pending');
+  const statusLabel = {pending:'ממתין',approved:'אושר',rejected:'נדחה',sent:'נשלח',opted_out:'ביטל',suppressed:'חסום'}[item.status||'pending'];
+  const channelIcon = {whatsapp:'📱',email:'📧',linkedin:'💼',form:'📝'}[item.channel||'whatsapp'];
+  const msgPreview = (item.message||'').substring(0,80) + ((item.message||'').length>80?'...':'');
+
+  if (type === 'supplier') {
+    return `<tr id="row-${item.id}" class="${item._selected?'selected':''}">
+      <td class="check-col"><input type="checkbox" ${item._selected?'checked':''} onchange="toggleSelect('${type}','${item.id}')"></td>
+      <td><div class="supplier-name">${item.name||'-'}</div><div class="supplier-type">${item.type||''}</div></td>
+      <td><span class="region-tag">${item.region||'-'}</span></td>
+      <td style="font-size:12px;max-width:140px;">${item.main_offer||'-'}</td>
+      <td class="contact-info">${item.contact_name?`<b>${item.contact_name}</b><br>`:''}${item.phone?`<a href="tel:${item.phone}">${item.phone}</a><br>`:''}${item.email?`<a href="mailto:${item.email}">${item.email}</a>`:''}${!item.contact_name&&!item.phone&&!item.email?'לא אותר':''}
+      </td>
+      <td><span class="channel-icon">${channelIcon}</span></td>
+      <td><span class="fit-badge ${fitClass}">${item.fit||'-'}</span></td>
+      <td class="msg-cell"><div class="msg-preview" title="${(item.message||'').replace(/"/g,'&quot;')}">${msgPreview||'אין הודעה'}</div><span class="edit-link" onclick="openEdit('${type}','${item.id}')">עריכה</span></td>
+      <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
+      <td><div class="actions-cell">
+        ${item.status!=='approved'&&item.status!=='opted_out'&&item.status!=='suppressed'?`<button class="btn btn-approve btn-sm" onclick="setStatus('${type}','${item.id}','approved')">✓</button>`:''}
+        ${item.status!=='rejected'&&item.status!=='opted_out'&&item.status!=='suppressed'?`<button class="btn btn-reject btn-sm" onclick="setStatus('${type}','${item.id}','rejected')">✗</button>`:''}
+        ${item.status!=='opted_out'&&item.status!=='suppressed'?`<button class="btn btn-optout btn-sm" onclick="markOptedOut('${type}','${item.id}')" title="ביקש להפסיק">🚫</button>`:''}
+        <button class="btn btn-export btn-sm" onclick="openEdit('${type}','${item.id}')">✏</button>
+      </div></td>
+    </tr>`;
+  }
+
+  if (type === 'producer') {
+    return `<tr id="row-${item.id}" class="${item._selected?'selected':''}">
+      <td class="check-col"><input type="checkbox" ${item._selected?'checked':''} onchange="toggleSelect('${type}','${item.id}')"></td>
+      <td><div class="supplier-name">${item.name||'-'}</div><div class="supplier-type">${item.type||'משרד הפקה'}</div></td>
+      <td><span class="region-tag">${item.region||'-'}</span></td>
+      <td style="font-size:12px;">${item.event_types||'-'}</td>
+      <td class="contact-info">${item.contact_name?`<b>${item.contact_name}</b><br>`:''}${item.phone?`<a href="tel:${item.phone}">${item.phone}</a><br>`:''}${item.email?`<a href="mailto:${item.email}">${item.email}</a>`:''}</td>
+      <td><span class="channel-icon">${channelIcon}</span></td>
+      <td class="msg-cell"><div class="msg-preview">${msgPreview||'אין הודעה'}</div><span class="edit-link" onclick="openEdit('${type}','${item.id}')">עריכה</span></td>
+      <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
+      <td><div class="actions-cell">
+        ${item.status!=='approved'&&item.status!=='opted_out'&&item.status!=='suppressed'?`<button class="btn btn-approve btn-sm" onclick="setStatus('${type}','${item.id}','approved')">✓</button>`:''}
+        ${item.status!=='rejected'&&item.status!=='opted_out'&&item.status!=='suppressed'?`<button class="btn btn-reject btn-sm" onclick="setStatus('${type}','${item.id}','rejected')">✗</button>`:''}
+        ${item.status!=='opted_out'&&item.status!=='suppressed'?`<button class="btn btn-optout btn-sm" onclick="markOptedOut('${type}','${item.id}')" title="ביקש להפסיק">🚫</button>`:''}
+        <button class="btn btn-export btn-sm" onclick="openEdit('${type}','${item.id}')">✏</button>
+      </div></td>
+    </tr>`;
+  }
+
+  if (type === 'hr') {
+    return `<tr id="row-${item.id}" class="${item._selected?'selected':''}">
+      <td class="check-col"><input type="checkbox" ${item._selected?'checked':''} onchange="toggleSelect('${type}','${item.id}')"></td>
+      <td><div class="supplier-name">${item.name||'-'}</div><div class="supplier-type">${item.website?`<a href="${item.website}" target="_blank" style="color:var(--accent-supplier);font-size:11px;">אתר</a>`:''}</div></td>
+      <td style="font-size:12px;">${item.industry||'-'}</td>
+      <td style="font-size:12px;">${item.employee_count||'-'}</td>
+      <td class="contact-info">${item.contact_name?`<b>${item.contact_name}</b><br>${item.contact_role?`<span style="color:var(--text-muted)">${item.contact_role}</span><br>`:''}`:''}${item.phone?`<a href="tel:${item.phone}">${item.phone}</a><br>`:''}${item.email?`<a href="mailto:${item.email}">${item.email}</a>`:''}</td>
+      <td><span class="channel-icon">${channelIcon}</span></td>
+      <td style="font-size:11px;color:var(--text-muted);max-width:100px;">${item.trigger||'-'}</td>
+      <td class="msg-cell"><div class="msg-preview">${msgPreview||'אין הודעה'}</div><span class="edit-link" onclick="openEdit('${type}','${item.id}')">עריכה</span></td>
+      <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
+      <td><div class="actions-cell">
+        ${item.status!=='approved'&&item.status!=='opted_out'&&item.status!=='suppressed'?`<button class="btn btn-approve btn-sm" onclick="setStatus('${type}','${item.id}','approved')">✓</button>`:''}
+        ${item.status!=='rejected'&&item.status!=='opted_out'&&item.status!=='suppressed'?`<button class="btn btn-reject btn-sm" onclick="setStatus('${type}','${item.id}','rejected')">✗</button>`:''}
+        ${item.status!=='opted_out'&&item.status!=='suppressed'?`<button class="btn btn-optout btn-sm" onclick="markOptedOut('${type}','${item.id}')" title="ביקש להפסיק">🚫</button>`:''}
+        <button class="btn btn-export btn-sm" onclick="openEdit('${type}','${item.id}')">✏</button>
+      </div></td>
+    </tr>`;
+  }
+}
+
+// ===== FILTER =====
+function getFiltered(type) {
+  const f = state.filters[type];
+  return state[type].filter(item => {
+    const q = f.q.toLowerCase();
+    const matchQ = !q || (item.name||'').toLowerCase().includes(q) || (item.type||'').toLowerCase().includes(q) || (item.region||'').toLowerCase().includes(q);
+    const matchStatus = !f.status || (item.status||'pending') === f.status;
+    const matchFit = !f.fit || item.fit === f.fit;
+    const matchDate = f.dateMode === 'all' || item.date === TODAY;
+    return matchQ && matchStatus && matchFit && matchDate;
+  });
+}
+function filterTable(type, q) { state.filters[type].q = q; render(type); }
+function filterByStatus(type, v) { state.filters[type].status = v; render(type); }
+function filterByFit(type, v) { state.filters[type].fit = v; render(type); }
+function filterByDate(type, v) { state.filters[type].dateMode = v; render(type); updateTargets(); }
+
+// ===== SELECT =====
+function toggleSelect(type, id) {
+  const item = state[type].find(x => x.id === id);
+  if (item) { item._selected = !item._selected; }
+  updateSelectedCount(type);
+  const row = document.getElementById('row-'+id);
+  if (row) row.classList.toggle('selected', item._selected);
+}
+function toggleSelectAll(type) {
+  const checked = document.getElementById('selectAll-'+type).checked;
+  const visible = getFiltered(type).map(x=>x.id);
+  state[type].forEach(item => { if (visible.includes(item.id)) item._selected = checked; });
+  render(type);
+}
+function updateSelectedCount(type) {
+  const n = state[type].filter(x=>x._selected).length;
+  document.getElementById('sel-'+type).textContent = n + ' נבחרו';
+}
+
+// ===== STATUS =====
+function setStatus(type, id, status) {
+  const item = state[type].find(x=>x.id===id);
+  if (item) { item.status = status; item._selected = false; }
+  saveToStorage(); render(type); renderDashboard();
+  showToast(status==='approved'?'אושר ✓':'נדחה ✗');
+}
+function bulkAction(type, status) {
+  const selected = state[type].filter(x=>x._selected);
+  if (!selected.length) { showToast('לא נבחרו רשומות'); return; }
+  selected.forEach(item => { item.status = status; item._selected = false; });
+  document.getElementById('selectAll-'+type).checked = false;
+  saveToStorage(); render(type); updateTargets();
+  showToast(`${selected.length} רשומות ${status==='approved'?'אושרו':'נדחו'}`);
+}
+
+// ===== EDIT MODAL =====
+function openEdit(type, id) {
+  const item = state[type].find(x=>x.id===id);
+  if (!item) return;
+  state.editingId = id; state.editingType = type;
+  document.getElementById('editModalTitle').textContent = item.name || 'עריכת פנייה';
+  document.getElementById('editModalInfo').innerHTML = `
+    <b>${item.name||''}</b> ${item.type?'· '+item.type:''} ${item.region?'· '+item.region:''}<br>
+    ${item.contact_name?'איש קשר: '+item.contact_name+(item.contact_role?' ('+item.contact_role+')':'')+'<br>':''}
+    ${item.email?'📧 '+item.email+'<br>':''}
+    ${item.phone?'📱 '+item.phone+'<br>':''}
+    ${item.main_offer?'שירות: '+item.main_offer:''}
+  `;
+  document.getElementById('editMessageText').value = item.message || '';
+  document.getElementById('editChannel').value = item.channel || 'whatsapp';
+  document.getElementById('editModal').classList.add('open');
+}
+function closeEdit() { document.getElementById('editModal').classList.remove('open'); }
+function saveEdit() {
+  const item = state[state.editingType].find(x=>x.id===state.editingId);
+  if (item) {
+    item.message = document.getElementById('editMessageText').value;
+    item.channel = document.getElementById('editChannel').value;
+    item.status = 'approved';
+  }
+  saveToStorage(); render(state.editingType); renderDashboard();
+  closeEdit(); showToast('נשמר ואושר ✓');
+}
+
+// ===== IMPORT =====
+function openImport() { document.getElementById('importModal').classList.add('open'); }
+function closeImport() { document.getElementById('importModal').classList.remove('open'); }
+function importData() {
+  const type = document.getElementById('importType').value;
+  const raw = document.getElementById('importJSON').value.trim();
+  let items;
+  try { items = JSON.parse(raw); } catch(e) { showToast('שגיאה: JSON לא תקין'); return; }
+  if (!Array.isArray(items)) { showToast('שגיאה: חייב להיות מערך []'); return; }
+  const mapped = checkAndMarkSuppressed(
+    items.map(x => ({ ...x, id: x.id || genId(), status: x.status || 'pending', _selected: false, date: x.date || TODAY }))
+  );
+  const suppCount = mapped.filter(x=>x.status==='suppressed').length;
+  state[type].push(...mapped);
+  saveToStorage(); render(type); renderDashboard();
+  closeImport();
+  document.getElementById('importJSON').value = '';
+  const msg = suppCount > 0
+    ? `נטענו ${mapped.length} רשומות - ${suppCount} חסומות אוטומטית 🚫`
+    : `נטענו ${mapped.length} רשומות ✓`;
+  showToast(msg);
+}
+
+// ===== DEMO DATA =====
+function loadDemo() {
+  const type = document.getElementById('importType').value;
+  const demos = {
+    supplier: [
+      { name:"סדנאות טעם ים", type:"סדנאות", region:"מרכז", website:"https://example.com", contact_name:"דנה כהן", contact_role:"בעלים", email:"dana@example.com", phone:"050-1234567", channel:"whatsapp", fit:"High", main_offer:"סדנאות בישול לקבוצות עד 60 איש", message:"שלום דנה,\nראיתי את סדנאות טעם ים - נראה שאתם עושים עבודה מדהימה עם קבוצות.\nאנחנו בונים מאגר ספקים איכותי שמחבר מפיקים ולקוחות ארגוניים לספקים מהשורה הראשונה.\nאשמח להסביר בקצרה אם מעניין." },
+      { name:"עין גב ריזורט", type:"מתחם אירוח", region:"צפון", website:"https://example2.com", contact_name:"", contact_role:"", email:"info@example2.com", phone:"04-5678901", channel:"email", fit:"High", main_offer:"נופשים ואירועי גיבוש ליד הכנרת", message:"שלום,\nמצאתי את עין גב ריזורט בחיפוש אחר מתחמים לנופשים ארגוניים.\nאנחנו בונים מאגר ספקים מקצועי - אשמח לשלוח כמה מילים על הרעיון." },
+      { name:"צוות תמונות", type:"צילום", region:"מרכז", website:"https://example3.com", contact_name:"אלון מזרחי", contact_role:"צלם ראשי", phone:"052-9876543", channel:"whatsapp", fit:"Medium", main_offer:"צילום אירועי חברה וימי כיף", message:"שלום אלון,\nראיתי את העבודות שלך - מרשים מאוד.\nאנחנו מרכזים מאגר ספקי אירועים איכותי ואשמח לכלול אתכם. אשמח לספר בקצרה." }
+    ],
+    producer: [
+      { name:"סטודיו אירועים ורד", type:"משרד הפקה", region:"מרכז", website:"https://example.com", contact_name:"ורד שמש", contact_role:"מפיקה", email:"vered@example.com", phone:"054-1122334", channel:"whatsapp", event_types:"ימי גיבוש, כנסים, אירועי חברה", message:"שלום ורד,\nאני ערן לוי - מפיק B2B מ-2004.\nבניתי מערכת שמחליפה את האקסלים ומנהלת ספקים, הצעות מחיר ותיעוד במקום אחד. קולגות שמנסים אומרים שזה שינה להם את העבודה.\nאשמח להראות לך 10 דקות." }
+    ],
+    hr: [
+      { name:"חברת אלפא טק", industry:"הייטק", employee_count:"200-500", website:"https://example.com", contact_name:"מיכל לוי", contact_role:"מנהלת רווחה", email:"michal@example.com", phone:"03-1234567", channel:"email", trigger:"גיוס עובדים חדשים - 30 מהנדסים", message:"שלום מיכל,\nראיתי שאלפא טק גייסה לאחרונה - כנראה שנבנות קבוצות עבודה חדשות.\nאנחנו מתמחים בימי כיף וגיבוש לחברות הייטק שצריכות לחבר בין אנשים מהר.\nאשמח לשלוח כמה רעיונות רלוונטיים?" }
+    ]
+  };
+  document.getElementById('importJSON').value = JSON.stringify(demos[type], null, 2);
+}
+
+// ===== TARGETS (kept for compatibility) =====
+function updateTargets() { renderDashboard(); }
+
+// ===== DASHBOARD =====
+function renderDashboard() {
+  const TRACK = {
+    supplier: { label:'ספקים', goal:150, color:'var(--accent-supplier)' },
+    producer: { label:'מפיקים', goal:50, color:'var(--accent-producer)' },
+    hr:       { label:'HR',    goal:20, color:'var(--accent-hr)' }
+  };
+
+  // --- TARGETS ---
+  let totalApprovedToday = 0, totalSentToday = 0, totalApproved = 0;
+  ['supplier','producer','hr'].forEach(type => {
+    const all = state[type];
+    const today = all.filter(x=>x.date===TODAY);
+    const goal = GOALS[type];
+    const pct = Math.min(100,(today.length/goal)*100);
+    set('d-'+type+'-count', today.length);
+    set('d-'+type+'-bar', null, pct+'%');
+    set('badge-'+type, state.filters[type]?.dateMode==='today' ? today.length : all.length);
+    totalApprovedToday += today.filter(x=>x.status==='approved').length;
+    totalSentToday += today.filter(x=>x.status==='sent').length;
+    totalApproved += all.filter(x=>x.status==='approved').length;
+  });
+  const totalTodayGoal = 150+50+20;
+  const totalToday = ['supplier','producer','hr'].reduce((s,t)=>s+state[t].filter(x=>x.date===TODAY).length,0);
+  set('d-approved-count', totalApprovedToday);
+  set('d-sent-count', totalSentToday + ' נשלחו');
+  set('d-approved-bar', null, Math.min(100,(totalApprovedToday/Math.max(totalToday,1))*100)+'%');
+
+  // --- FUNNEL ---
+  const funnelBody = document.getElementById('funnel-body');
+  if (funnelBody) {
+    funnelBody.innerHTML = ['supplier','producer','hr'].map(type => {
+      const t = state[type].filter(x=>x.date===TODAY);
+      const loaded = t.length;
+      const pending = t.filter(x=>x.status==='pending').length;
+      const approved = t.filter(x=>x.status==='approved').length;
+      const sent = t.filter(x=>x.status==='sent').length;
+      const rejected = t.filter(x=>x.status==='rejected').length;
+      const suppressed = t.filter(x=>x.status==='suppressed').length;
+      const c = TRACK[type].color;
+      return `<tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:8px;font-size:12px;font-weight:600;">${TRACK[type].label}</td>
+        <td style="text-align:center;padding:8px;font-size:13px;">${loaded}</td>
+        <td style="text-align:center;padding:8px;"><span style="color:#f59e0b;font-weight:600;">${pending}</span></td>
+        <td style="text-align:center;padding:8px;"><span style="color:var(--approved);font-weight:600;">${approved}</span></td>
+        <td style="text-align:center;padding:8px;"><span style="color:var(--sent);font-weight:600;">${sent}</span></td>
+        <td style="text-align:center;padding:8px;"><span style="color:var(--rejected);font-weight:600;">${rejected}</span></td>
+        <td style="text-align:center;padding:8px;"><span style="color:var(--text-muted);font-weight:600;">${suppressed}</span></td>
+      </tr>`;
+    }).join('');
+  }
+
+  // --- ACTION ITEMS ---
+  const actions = [];
+  ['supplier','producer','hr'].forEach(type => {
+    const today = state[type].filter(x=>x.date===TODAY);
+    const pending = today.filter(x=>x.status==='pending').length;
+    const approved = today.filter(x=>x.status==='approved').length;
+    const loaded = today.length;
+    const goal = GOALS[type];
+    const label = TRACK[type].label;
+    if (loaded === 0) {
+      actions.push({ icon:'📥', title:`טען ${label} להיום`, desc:`יעד: ${goal} רשומות`, tab: type, urgent: true, done: false });
+    } else if (pending > 0) {
+      actions.push({ icon:'✅', title:`${pending} ${label} ממתינים לאישור`, desc:`לחץ לסקירה`, tab: type, urgent: true, done: false });
+    } else if (approved > 0) {
+      actions.push({ icon:'📤', title:`${approved} ${label} מאושרים לשליחה`, desc:`סמן כנשלח אחרי השליחה`, tab: type, urgent: false, done: false });
+    } else {
+      actions.push({ icon:'✓', title:`${label} - הכל טופל היום`, desc:`${loaded} נטענו`, tab: type, urgent: false, done: true });
+    }
+  });
+  const actEl = document.getElementById('action-items');
+  if (actEl) {
+    actEl.innerHTML = actions.map(a => `
+      <div class="action-item ${a.urgent?'urgent':''} ${a.done?'done':''}" onclick="${a.done?'':("switchTab('"+a.tab+"')")}">
+        <div class="ai">${a.icon}</div>
+        <div class="at"><strong>${a.title}</strong><span>${a.desc}</span></div>
+        ${!a.done?`<div class="ac">פתח ←</div>`:''}
+      </div>
+    `).join('');
+  }
+
+  // --- ALL TIME STATS ---
+  const all = [...state.supplier,...state.producer,...state.hr];
+  set('at-supplier', state.supplier.length);
+  set('at-producer', state.producer.length);
+  set('at-hr', state.hr.length);
+  set('at-approved', all.filter(x=>x.status==='approved').length);
+  set('at-sent', all.filter(x=>x.status==='sent').length);
+  set('at-suppression', state.suppression.length);
+  set('badge-suppression', state.suppression.length);
+}
+
+function set(id, text, width) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (text !== null && text !== undefined) el.textContent = text;
+  if (width !== undefined) el.style.width = width;
+}
+
+function exportAllApproved() {
+  const all = ['supplier','producer','hr'].flatMap(t => state[t].filter(x=>x.status==='approved').map(x=>({...x,_type:t})));
+  if (!all.length) { showToast('אין רשומות מאושרות'); return; }
+  const headers = Object.keys(all[0]).filter(k=>!k.startsWith('_'));
+  const rows = [['type',...headers].join(','), ...all.map(item => [item._type,...headers.map(h=>JSON.stringify(item[h]||''))].join(','))];
+  const blob = new Blob(['\uFEFF'+rows.join('\n')], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `all_approved_${TODAY}.csv`; a.click();
+  showToast(`יוצאו ${all.length} רשומות מאושרות`);
+}
+
+// ===== SUPPRESSION =====
+function isSupressed(phone, email) {
+  if (!phone && !email) return false;
+  return state.suppression.some(s =>
+    (phone && s.phone && normalizePhone(s.phone) === normalizePhone(phone)) ||
+    (email && s.email && s.email.toLowerCase() === email.toLowerCase())
+  );
+}
+function normalizePhone(p) { return (p||'').replace(/[\s\-().+]/g,''); }
+
+function markOptedOut(type, id) {
+  const item = state[type].find(x=>x.id===id);
+  if (!item) return;
+  if (!confirm(`לחסום את "${item.name || id}"?\nהם יתווספו לרשימת החסימה ולא יקבלו פניות בעתיד.`)) return;
+  item.status = 'opted_out';
+  // Add to suppression list if not already there
+  if (!isSupressed(item.phone, item.email)) {
+    state.suppression.push({
+      name: item.name || '',
+      phone: item.phone || '',
+      email: item.email || '',
+      source_type: type,
+      opted_out_date: TODAY
+    });
+  }
+  saveToStorage(); render(type); renderSuppression(); renderDashboard();
+  showToast('🚫 נוסף לרשימת החסימה');
+}
+
+function checkAndMarkSuppressed(items) {
+  return items.map(item => {
+    if (isSupressed(item.phone, item.email)) {
+      return { ...item, status: 'suppressed' };
+    }
+    return item;
+  });
+}
+
+function renderSuppression() {
+  const tbody = document.getElementById('body-suppression');
+  const empty = document.getElementById('empty-suppression');
+  document.getElementById('badge-suppression').textContent = state.suppression.length;
+  if (!state.suppression.length) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  tbody.innerHTML = state.suppression.map((s,i) => `
+    <tr>
+      <td style="font-weight:600;">${s.name||'-'}</td>
+      <td>${s.phone||'-'}</td>
+      <td>${s.email||'-'}</td>
+      <td><span class="region-tag">${{supplier:'ספק',producer:'מפיק',hr:'HR'}[s.source_type]||s.source_type}</span></td>
+      <td style="color:var(--text-muted);font-size:12px;">${s.opted_out_date||''}</td>
+      <td><button class="btn btn-export btn-sm" onclick="removeFromSuppression(${i})">שחרר</button></td>
+    </tr>
+  `).join('');
+}
+
+function removeFromSuppression(idx) {
+  const removed = state.suppression.splice(idx, 1)[0];
+  // Restore any suppressed items that match
+  ['supplier','producer','hr'].forEach(type => {
+    state[type].forEach(item => {
+      if (item.status === 'suppressed') {
+        const matchPhone = removed.phone && normalizePhone(item.phone) === normalizePhone(removed.phone);
+        const matchEmail = removed.email && item.email && item.email.toLowerCase() === removed.email.toLowerCase();
+        if (matchPhone || matchEmail) item.status = 'pending';
+      }
+    });
+  });
+  saveToStorage(); renderSuppression();
+  ['supplier','producer','hr'].forEach(t => render(t));
+  showToast('שוחרר מרשימת החסימה');
+}
+
+function clearSuppression() {
+  if (!confirm('למחוק את כל רשימת החסימה?')) return;
+  state.suppression = [];
+  saveToStorage(); renderSuppression();
+  showToast('רשימת החסימה נמחקה');
+}
+
+function exportSuppression() {
+  if (!state.suppression.length) { showToast('הרשימה ריקה'); return; }
+  const headers = ['name','phone','email','source_type','opted_out_date'];
+  const rows = [headers.join(','), ...state.suppression.map(s => headers.map(h=>JSON.stringify(s[h]||'')).join(','))];
+  const blob = new Blob(['\uFEFF'+rows.join('\n')], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `suppression_list_${TODAY}.csv`; a.click();
+}
+
+// ===== EXPORT =====
+function exportCSV() {
+  const type = state.activeTab;
+  const data = state[type].filter(x=>x.status==='approved');
+  if (!data.length) { showToast('אין רשומות מאושרות לייצוא'); return; }
+  const headers = Object.keys(data[0]).filter(k=>!k.startsWith('_'));
+  const rows = [headers.join(','), ...data.map(item => headers.map(h => JSON.stringify(item[h]||'')).join(','))];
+  const blob = new Blob(['\uFEFF'+rows.join('\n')], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `outreach_${type}_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  showToast(`יוצאו ${data.length} רשומות`);
+}
+
+// ===== STORAGE =====
+function saveToStorage() {
+  localStorage.setItem('outreach_hub', JSON.stringify({ supplier: state.supplier, producer: state.producer, hr: state.hr, suppression: state.suppression }));
+}
+function loadFromStorage() {
+  const saved = localStorage.getItem('outreach_hub');
+  if (saved) {
+    const d = JSON.parse(saved);
+    state.supplier = d.supplier||[];
+    state.producer = d.producer||[];
+    state.hr = d.hr||[];
+    state.suppression = d.suppression||[];
+  }
+}
+
+// ===== UTILS =====
+function genId() { return Math.random().toString(36).slice(2,10); }
+function setDateBtn(type, mode) {
+  const btns = document.querySelectorAll(`#dttoggle-${type} button`);
+  btns.forEach(b => b.classList.toggle('active', b.textContent === (mode==='today'?'היום':'הכל')));
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
