@@ -484,6 +484,7 @@
     <a href="index.html" class="header-back-link" style="font-size:12px;color:var(--text-muted);text-decoration:none;padding:5px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);white-space:nowrap;transition:color 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-muted)'">← ערן לוי OS</a>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">☀️</button>
     <button class="btn btn-export btn-csv" onclick="exportCSV()">&#8595; ייצוא CSV</button>
+    <button class="btn btn-export" id="importBtn" onclick="document.getElementById('importModal').classList.add('open')" style="background:rgba(59,130,246,0.1);border-color:rgba(59,130,246,0.3);color:#3b82f6;">📥 ייבוא לידים</button>
     <button class="btn btn-export" onclick="openAudioModal()" style="background:rgba(245,158,11,0.1);border-color:rgba(245,158,11,0.3);color:#f59e0b;">🎙 ניתוח שיחה</button>
     <button class="btn btn-primary" onclick="openQuickLeadModal()" style="background:rgba(16,185,129,0.15);border-color:rgba(16,185,129,0.4);color:#10b981;">💬 ליד מהיר</button>
     <button class="btn btn-primary" onclick="openAddModal()">+ ליד חדש</button>
@@ -1002,6 +1003,19 @@
   </div>
 </div>
 
+<!-- IMPORT MODAL -->
+<div class="overlay" id="importModal">
+<div class="modal" style="max-width:500px;">
+  <h3 style="margin-bottom:12px;">📥 ייבוא לידים</h3>
+  <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">הדבק כאן את נתוני הלידים מהאתר הישן (JSON)</p>
+  <textarea id="importData" style="width:100%;height:150px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:10px;font-size:12px;font-family:monospace;" placeholder='הדבק כאן...'></textarea>
+  <div style="display:flex;gap:8px;margin-top:10px;">
+    <button class="btn btn-primary" onclick="doImport()">ייבא</button>
+    <button class="btn btn-export" onclick="document.getElementById('importModal').classList.remove('open')">ביטול</button>
+  </div>
+</div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
@@ -1381,6 +1395,26 @@ function exportCSV() {
   a.download = `inbound_leads_${TODAY}.csv`;
   a.click();
   showToast(`יוצאו ${state.leads.length} לידים`);
+}
+
+// ===== IMPORT =====
+function doImport() {
+  const raw = document.getElementById('importData').value.trim();
+  if (!raw) { showToast('הדבק נתונים קודם'); return; }
+  try {
+    const arr = JSON.parse(raw);
+    if (!Array.isArray(arr) || !arr.length) { showToast('נתונים לא תקינים'); return; }
+    // merge - don't duplicate by id
+    const existingIds = new Set(state.leads.map(l => l.id));
+    let added = 0;
+    arr.forEach(l => {
+      if (!existingIds.has(l.id)) { state.leads.push(l); added++; }
+    });
+    state.leads.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    saveToStorage(); render(); updateStageCounts();
+    document.getElementById('importModal').classList.remove('open');
+    showToast(`יובאו ${added} לידים חדשים`);
+  } catch(e) { showToast('שגיאה בנתונים: ' + e.message); }
 }
 
 // ===== FIREBASE + STORAGE =====
