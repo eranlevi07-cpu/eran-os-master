@@ -7,6 +7,8 @@
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <link rel="apple-touch-icon" href="/icon-192.png">
 <meta name="theme-color" content="#f5c800">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
   :root {
     --bg: #f4f7fb;
@@ -642,12 +644,16 @@ async function submitForm() {
     referrer: document.referrer || ''
   };
 
-  // Save to parent localStorage (when embedded in iframe on same domain)
+  // Save to Firebase (moked hanichansim)
   try {
-    const store = window.parent !== window ? window.parent.localStorage : localStorage;
-    const existing = JSON.parse(store.getItem('inbound_hub') || '[]');
-    existing.unshift({
-      id: Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+    const _fbApp = firebase.initializeApp({
+      apiKey: "AIzaSyCt-OJX1O-dHORnhLFykVxeUmCfLJUNGVM",
+      databaseURL: "https://moked-lidim-default-rtdb.firebaseio.com",
+      projectId: "moked-lidim"
+    });
+    const leadId = Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+    const leadData = {
+      id: leadId,
       name, phone, email, company,
       source: 'website', mizum: params.project,
       stage: 'new', channel: selectedPref === 'email' ? 'email' : 'whatsapp',
@@ -657,9 +663,9 @@ async function submitForm() {
       updates_ok: updatesOk,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
-    });
-    store.setItem('inbound_hub', JSON.stringify(existing));
-  } catch(e) {}
+    };
+    firebase.database().ref('inbound_hub/leads/' + leadId).set(leadData);
+  } catch(e) { console.error('Firebase save error:', e); }
 
   // Send to webhook
   if (params.webhook) {
