@@ -1008,9 +1008,13 @@
 <div class="modal" style="max-width:500px;">
   <h3 style="margin-bottom:12px;">📥 ייבוא לידים</h3>
   <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">הדבק כאן את נתוני הלידים מהאתר הישן (JSON)</p>
-  <textarea id="importData" style="width:100%;height:150px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:10px;font-size:12px;font-family:monospace;" placeholder='הדבק כאן...'></textarea>
+  <textarea id="importData" style="width:100%;height:120px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:10px;font-size:12px;font-family:monospace;" placeholder='הדבק JSON כאן...'></textarea>
+  <div style="margin-top:10px;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;text-align:center;">
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">או העלה קובץ CSV:</div>
+    <input type="file" id="importFile" accept=".csv,.json" onchange="handleImportFile(event)" style="font-size:13px;color:var(--text);">
+  </div>
   <div style="display:flex;gap:8px;margin-top:10px;">
-    <button class="btn btn-primary" onclick="doImport()">ייבא</button>
+    <button class="btn btn-primary" onclick="doImport()">ייבא JSON</button>
     <button class="btn btn-export" onclick="document.getElementById('importModal').classList.remove('open')">ביטול</button>
   </div>
 </div>
@@ -1398,6 +1402,55 @@ function exportCSV() {
 }
 
 // ===== IMPORT =====
+function handleImportFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const text = e.target.result.trim();
+    if (file.name.endsWith('.json')) {
+      document.getElementById('importData').value = text;
+      doImport();
+    } else {
+      importCSV(text);
+    }
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function importCSV(text) {
+  try {
+    const lines = text.replace(/^\uFEFF/, '').split('\n').filter(l => l.trim());
+    if (lines.length < 2) { showToast('קובץ ריק'); return; }
+    const headers = lines[0].split(',').map(h => h.replace(/"/g,'').trim());
+    const existingIds = new Set(state.leads.map(l => l.id));
+    let added = 0;
+    for (let i = 1; i < lines.length; i++) {
+      const vals = [];
+      let current = '', inQuotes = false;
+      for (const ch of lines[i]) {
+        if (ch === '"') { inQuotes = !inQuotes; }
+        else if (ch === ',' && !inQuotes) { vals.push(current.trim()); current = ''; }
+        else { current += ch; }
+      }
+      vals.push(current.trim());
+      const lead = { id: genId(), notes: [], created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+      headers.forEach((h, idx) => {
+        if (vals[idx]) lead[h] = vals[idx];
+      });
+      if (!lead.name) continue;
+      if (lead.created_at && !existingIds.has(lead.id)) {
+        state.leads.push(lead);
+        added++;
+      }
+    }
+    state.leads.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    saveToStorage(); render(); updateStageCounts();
+    document.getElementById('importModal').classList.remove('open');
+    showToast(`יובאו ${added} לידים מ-CSV`);
+  } catch(e) { showToast('שגיאה: ' + e.message); }
+}
+
 function doImport() {
   const raw = document.getElementById('importData').value.trim();
   if (!raw) { showToast('הדבק נתונים קודם'); return; }
